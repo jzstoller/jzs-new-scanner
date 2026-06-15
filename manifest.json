@@ -1,10 +1,10 @@
 {
-	"id": "jzs-handwritten-scanner",
-	"name": "JZS Handwritten Scanner",
+	"id": "jzs-new-scanner",
+	"name": "JZS New Scanner",
 	"version": "1.2.3",
 	"minAppVersion": "0.15.0",
 	"description": "Scan, process, and enhance handwritten notes with perspective correction, background removal, and advanced filtering.",
-	"author": "Show Wai Yan - Extski",
+	"author": "Extski",
 	"isDesktopOnly": false,
 	"icon": "scan"
 }
