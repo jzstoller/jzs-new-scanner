@@ -1,0 +1,46 @@
+{
+	"name": "jzs-handwritten-scanner",
+	"version": "1.2.3",
+	"description": "Scan, process, and enhance handwritten notes with perspective correction, background removal, and advanced filtering for Obsidian.",
+	"main": "main.js",
+	"scripts": {
+		"dev": "node esbuild.config.mjs",
+		"build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
+		"build-and-copy": "./build-and-copy.sh",
+		"version": "node version-bump.mjs && git add manifest.json versions.json",
+		"test": "vitest run",
+		"test:ui": "vitest --ui",
+		"test:coverage": "vitest --coverage"
+	},
+	"keywords": [
+		"obsidian",
+		"obsidian-plugin",
+		"scanner",
+		"handwriting",
+		"document-scanner",
+		"image-processing",
+		"perspective-correction",
+		"background-removal",
+		"note-taking",
+		"sketch"
+	],
+	"author": "Show Wai Yan",
+	"license": "OBSD",
+	"devDependencies": {
+		"@types/node": "^20.19.27",
+		"@typescript-eslint/eslint-plugin": "5.29.0",
+		"@typescript-eslint/parser": "5.29.0",
+		"@vitest/ui": "^4.0.16",
+		"builtin-modules": "3.3.0",
+		"esbuild": "0.17.3",
+		"happy-dom": "^20.10.3",
+		"jsdom": "^27.4.0",
+		"obsidian": "latest",
+		"tslib": "2.4.0",
+		"typescript": "4.7.4",
+		"vitest": "^4.1.8"
+	},
+	"dependencies": {
+		"perspective-transform": "^1.1.3"
+	}
+}
