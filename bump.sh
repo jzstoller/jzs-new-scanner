@@ -46,11 +46,14 @@ echo "🚀 Pushing to GitHub..."
 git push
 git push origin "$VERSION"
 
+# 7. Create GitHub release with attached files
+echo "📦 Creating GitHub release..."
+gh release create "$VERSION" \
+  --title "$VERSION" \
+  --notes "Release $VERSION" \
+  main.js \
+  manifest.json \
+  styles.css
+
 echo "✅ Version bump complete: $VERSION"
-echo ""
-echo "Next steps:"
-echo "1. Go to https://github.com/jzstoller/jzs-new-scanner/releases/new"
-echo "2. Select tag $VERSION"
-echo "3. Add release title: $VERSION"
-echo "4. Attach these files: main.js, manifest.json, styles.css"
-echo "5. Publish the release"
+echo "✅ GitHub release published: https://github.com/jzstoller/jzs-new-scanner/releases/tag/$VERSION"
