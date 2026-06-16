@@ -66,7 +66,7 @@ export class ExportModal extends Modal {
 
 	private buildSvgColorPicker(container: HTMLElement): void {
 		this.svgColorSection = container.createDiv("export-svg-color-section");
-		this.svgColorSection.style.display = "none";
+		this.svgColorSection.hide();
 
 		const heading = this.svgColorSection.createEl("h4");
 		heading.textContent = "Image color:";
@@ -106,7 +106,7 @@ export class ExportModal extends Modal {
 		this.pngRadio.checked = this.selectedFormat === "png";
 		this.pngRadio.addEventListener("change", () => {
 			this.selectedFormat = "png";
-			this.svgColorSection.style.display = "none";
+			this.svgColorSection.hide();
 			this.updateExtensionDisplay();
 			this.saveFormatPreference();
 		});
@@ -125,7 +125,7 @@ export class ExportModal extends Modal {
 		this.jpgRadio.checked = this.selectedFormat === "jpg";
 		this.jpgRadio.addEventListener("change", () => {
 			this.selectedFormat = "jpg";
-			this.svgColorSection.style.display = "none";
+			this.svgColorSection.hide();
 			this.updateExtensionDisplay();
 			this.saveFormatPreference();
 		});
@@ -144,7 +144,7 @@ export class ExportModal extends Modal {
 		this.svgRadio.checked = this.selectedFormat === "svg";
 		this.svgRadio.addEventListener("change", () => {
 			this.selectedFormat = "svg";
-			this.svgColorSection.style.display = "";
+			this.svgColorSection.show();
 			this.updateExtensionDisplay();
 			this.saveFormatPreference();
 		});
@@ -179,7 +179,7 @@ export class ExportModal extends Modal {
 		const section = container.createDiv("export-insert-link-section");
 
 		const wrapper = section.createDiv("export-insert-link-wrapper");
-		
+
 		this.insertLinkCheckbox = wrapper.createEl("input", {
 			type: "checkbox",
 			attr: { id: "insert-link-checkbox" },
@@ -304,7 +304,7 @@ export class ExportModal extends Modal {
 
 				// Close modal
 				this.close();
-				
+
 				// Call the completion callback to close scanner modal if enabled
 				if (this.plugin.settings.closeAfterExport && this.onExportComplete) {
 					this.onExportComplete();
