@@ -179,7 +179,6 @@ export class ExportModal extends Modal {
 		const section = container.createDiv("export-insert-link-section");
 
 		const wrapper = section.createDiv("export-insert-link-wrapper");
-
 		this.insertLinkCheckbox = wrapper.createEl("input", {
 			type: "checkbox",
 			attr: { id: "insert-link-checkbox" },
@@ -304,7 +303,6 @@ export class ExportModal extends Modal {
 
 				// Close modal
 				this.close();
-
 				// Call the completion callback to close scanner modal if enabled
 				if (this.plugin.settings.closeAfterExport && this.onExportComplete) {
 					this.onExportComplete();
