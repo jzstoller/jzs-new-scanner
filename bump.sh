@@ -35,7 +35,7 @@ npm run build
 # 4. Commit changes
 echo "Enter commit message:"
 read MESSAGE
-git add package.json manifest.json versions.json main.js
+git add package.json manifest.json versions.json main.js package-lock.json
 git commit -m "Release $VERSION: $MESSAGE"
 
 # 5. Create tag without 'v' prefix
