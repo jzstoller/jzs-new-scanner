@@ -1,7 +1,7 @@
 {
-	"name": "jzs-handwritten-scanner",
+	"name": "jzs-simples-scanner2",
 	"version": "1.2.9",
-	"description": "Scan, process, and enhance handwritten notes with perspective correction, background removal, and advanced filtering for Obsidian.",
+	"description": "Scan documents with auto corner detection and perspective correction.",
 	"main": "main.js",
 	"scripts": {
 		"dev": "node esbuild.config.mjs",
@@ -16,15 +16,11 @@
 		"obsidian",
 		"obsidian-plugin",
 		"scanner",
-		"handwriting",
 		"document-scanner",
 		"image-processing",
-		"perspective-correction",
-		"background-removal",
-		"note-taking",
-		"sketch"
+		"perspective-correction"
 	],
-	"author": "Show Wai Yan",
+	"author": "Extski",
 	"license": "OBSD",
 	"devDependencies": {
 		"@types/node": "^20.19.27",

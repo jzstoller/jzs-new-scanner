@@ -1,33 +1,19 @@
-# JZS Handwritten Scanner
+# JZS Simple Scanner2
 
-A powerful Obsidian plugin for scanning, processing, and enhancing handwritten notes and documents. Transform photos of your handwritten notes into clean, processed images with automatic perspective correction, background removal, and advanced filtering.
+An Obsidian plugin for scanning and processing documents. Transform documents with automatic perspective correction.
 
 <a href="https://www.buymeacoffee.com/Showwaiyan" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" ></a>
 
 ## DEMO
-![Demo](./assets/demo.gif)
 
 ## Features
 
 ### 📸 Image Upload & Processing
 - **Multiple Input Methods**: Upload from file picker or capture directly from camera
 - **Smart Perspective Correction**: Automatically detect and correct document corners with interactive crop points
-- **Rotation Controls**: Rotate images in 90-degree increments for proper orientation
 - **HiDPI Support**: Full support for high-resolution displays (Retina, 4K, etc.)
 
 ### 🎨 Advanced Image Enhancement
-- **Background Removal**:
-  - Click-to-sample background color detection
-  - Adjustable tolerance slider (0-50)
-  - Real-time preview with checkerboard pattern for transparency
-  - Export with true transparent background (PNG)
-
-- **Image Filters**:
-  - Brightness adjustment (-100 to +100)
-  - Contrast enhancement (-100 to +100)
-  - Saturation control (-100 to +100)
-  - Black & White conversion
-  - Real-time preview with 200ms debouncing
 
 ### 💾 Export Options
 - **Multiple Formats**:
@@ -41,10 +27,7 @@ A powerful Obsidian plugin for scanning, processing, and enhancing handwritten n
 
 ### 🎯 User Experience
 - **Visual Feedback**:
-  - Checkerboard pattern for transparent areas during editing
   - Magnifying loupe when dragging crop points
-  - Real-time filter preview
-  - Clear status notifications
 
 - **Touch & Mouse Support**:
   - Responsive controls for both desktop and mobile
@@ -103,25 +86,13 @@ BRAT will automatically keep the plugin updated with the latest releases.
    - Or click "Camera" to capture directly (if available)
 
 3. **Adjust & Process**
-   - **Rotate**: Click rotation buttons to orient correctly
    - **Crop**: Click "Crop" to show corner points, drag to adjust, click "Apply"
-   - **Filters**: Adjust sliders for brightness, contrast, saturation
-   - **Background Removal**: Click to sample background color, adjust tolerance
 
 4. **Export**
    - Click "Export" button (download icon)
    - Choose format (PNG/SVG)
    - Enter filename or use auto-generated timestamp
    - Click "Export" to save to vault
-
-### Background Removal
-
-1. Click the background removal icon
-2. Click on any background area to sample the color
-3. Adjust tolerance slider to fine-tune selection
-4. Preview shows transparent areas with checkerboard pattern
-5. Click "Apply" to confirm or "Cancel" to revert
-6. Export as PNG to preserve transparency
 
 ### Perspective Crop
 
@@ -132,7 +103,7 @@ BRAT will automatically keep the plugin updated with the latest releases.
 
 ## Settings
 
-Access plugin settings via Settings → JZS Handwritten Scanner:
+Access plugin settings via Settings → JZS Simple Scanner2:
 
 - **Export Default Folder**: Set the default folder for saving scanned images (default: root)
 
@@ -343,5 +314,3 @@ This project is licensed under the OBSD License - see the LICENSE file for detai
 - Inspired by document scanning apps and the Obsidian community
 
 ---
-
-**Made with ❤️ for the Obsidian community**

@@ -72,7 +72,7 @@ export interface OperationResult {
  */
 export interface PlaceholderConfig {
 	primaryText: string;
-	secondaryText: string;
+	// secondaryText: string;
 	backgroundColor: string;
 	iconColor: string;
 	textColor: string;

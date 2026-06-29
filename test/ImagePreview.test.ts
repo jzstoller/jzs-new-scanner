@@ -59,80 +59,6 @@ describe("ImagePreview", () => {
 		});
 	});
 
-	describe("rotate", () => {
-		beforeEach(() => {
-			imagePreview.setup();
-
-			// Mock a loaded image
-			const file = new File([""], "test.png", { type: "image/png" });
-			imagePreview.darawImage(file);
-
-			// Wait for image to load
-			vi.runAllTimers();
-		});
-
-		it("should clear canvas when rotating", () => {
-			mockCtx.clearRect.mockClear();
-
-			imagePreview.rotate(90);
-
-			// Should clear canvas (for transparency and redraw with checkerboard)
-			expect(mockCtx.clearRect).toHaveBeenCalled();
-		});
-
-	it("should accumulate rotation degrees", () => {
-		const consoleSpy = vi.spyOn(console, "debug");
-
-		imagePreview.rotate(90);
-		expect(consoleSpy).toHaveBeenCalledWith("Rotation count:", 0);
-
-		imagePreview.rotate(90);
-		expect(consoleSpy).toHaveBeenCalledWith("Rotation count:", 90);
-
-		imagePreview.rotate(-45);
-		expect(consoleSpy).toHaveBeenCalledWith("Rotation count:", 180);
-	});
-
-		it("should apply transformation when rotating", () => {
-			mockCtx.save.mockClear();
-			mockCtx.translate.mockClear();
-			mockCtx.rotate.mockClear();
-			mockCtx.drawImage.mockClear();
-			mockCtx.restore.mockClear();
-
-			imagePreview.rotate(90);
-
-			expect(mockCtx.save).toHaveBeenCalled();
-			expect(mockCtx.translate).toHaveBeenCalled();
-			expect(mockCtx.rotate).toHaveBeenCalled();
-			expect(mockCtx.drawImage).toHaveBeenCalled();
-			expect(mockCtx.restore).toHaveBeenCalled();
-		});
-
-		it("should handle negative rotation degrees", () => {
-			mockCtx.rotate.mockClear();
-			mockCtx.drawImage.mockClear();
-
-			imagePreview.rotate(-90);
-
-			expect(mockCtx.rotate).toHaveBeenCalled();
-			expect(mockCtx.drawImage).toHaveBeenCalled();
-		});
-
-		it("should handle multiple rotations", () => {
-			mockCtx.rotate.mockClear();
-
-			imagePreview.rotate(90);
-			imagePreview.rotate(90);
-			imagePreview.rotate(90);
-			imagePreview.rotate(90);
-
-			// Should have been called at least 4 times (may be more due to filter resets)
-			expect(mockCtx.rotate).toHaveBeenCalled();
-			expect(mockCtx.rotate.mock.calls.length).toBeGreaterThanOrEqual(4);
-		});
-	});
-
 	describe("toggleCroppingPoints", () => {
 		beforeEach(() => {
 			imagePreview.setup();
@@ -289,56 +215,6 @@ describe("ImagePreview", () => {
 			expect(drawImageCall.length).toBeGreaterThan(0);
 			// Image should be drawn (parameters exist)
 			expect(drawImageCall[0]).toBeDefined(); // image
-		});
-	});
-
-	describe("integration tests", () => {
-		beforeEach(() => {
-			imagePreview.setup();
-		});
-
-		it("should maintain crop points after rotation", () => {
-			const file = new File([""], "test.png", { type: "image/png" });
-			imagePreview.darawImage(file);
-			vi.runAllTimers();
-
-			// Show crop points
-			imagePreview.toggleCroppingPoints(true);
-
-			// Rotate image
-			imagePreview.rotate(90);
-
-			// Crop points should still be drawable
-			const result = imagePreview.toggleCroppingPoints(true);
-			expect(result.success).toBe(true);
-		});
-
-		it("should handle show/hide crop points multiple times", () => {
-			const file = new File([""], "test.png", { type: "image/png" });
-			imagePreview.darawImage(file);
-			vi.runAllTimers();
-
-			imagePreview.toggleCroppingPoints(true);
-			imagePreview.toggleCroppingPoints(false);
-			imagePreview.toggleCroppingPoints(true);
-			const result = imagePreview.toggleCroppingPoints(false);
-
-			expect(result.success).toBe(true);
-			expect(result.message).toBe("Cropping points removed");
-		});
-
-		it("should redraw image correctly after removing crop points", () => {
-			const file = new File([""], "test.png", { type: "image/png" });
-			imagePreview.darawImage(file);
-			vi.runAllTimers();
-
-			imagePreview.toggleCroppingPoints(true);
-
-			mockCtx.drawImage.mockClear();
-			imagePreview.toggleCroppingPoints(false);
-
-			// Should redraw the image
-			expect(mockCtx.drawImage).toHaveBeenCalled();
 		});
 	});
 });

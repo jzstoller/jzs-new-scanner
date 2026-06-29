@@ -50,7 +50,7 @@ export function fillCanvasWithCheckerboard(
 ): void {
 	// Clear canvas first
 	ctx.clearRect(0, 0, width, height);
-	
+
 	// Draw checkerboard pattern
 	for (let y = 0; y < height; y += squareSize) {
 		for (let x = 0; x < width; x += squareSize) {
@@ -101,6 +101,7 @@ export function renderPlaceholder(
 	);
 
 	// Secondary text
+	/**
 	const secondaryFontSize = Math.max(12, Math.min(width, height) / 40);
 	ctx.font = `${secondaryFontSize}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
 	ctx.fillStyle = config.secondaryTextColor;
@@ -109,6 +110,7 @@ export function renderPlaceholder(
 		centerX,
 		centerY + iconSize / 2 + primaryFontSize * 1.5,
 	);
+	*/
 }
 
 /**
