@@ -7,6 +7,9 @@ interface HandwrittenScannerSettings {
 	closeAfterExport: boolean;
 	insertLinkAfterExport: boolean;
 	svgTintColor: string;
+	optimizeImageSize: boolean;
+	stripAlpha: boolean;
+	exportQuality: number;
 }
 
 const DEFAULT_SETTINGS: HandwrittenScannerSettings = {
@@ -15,6 +18,9 @@ const DEFAULT_SETTINGS: HandwrittenScannerSettings = {
 	closeAfterExport: true,
 	insertLinkAfterExport: true,
 	svgTintColor: "#000000",
+	optimizeImageSize: true,
+	stripAlpha: false,
+	exportQuality: 0.92,
 };
 
 export default class HandWrittenPlugin extends Plugin {
@@ -105,6 +111,44 @@ class HandwrittenScannerSettingTab extends PluginSettingTab {
 					.setValue(this.plugin.settings.svgTintColor)
 					.onChange(async (value) => {
 						this.plugin.settings.svgTintColor = value;
+						await this.plugin.saveSettings();
+					}),
+			);
+
+		new Setting(containerEl)
+			.setName("Optimize image size")
+			.setDesc("Resize exported image so the longest edge is 2000 px (maintains aspect ratio). Has no effect if the image is already smaller.")
+			.addToggle((toggle) =>
+				toggle
+					.setValue(this.plugin.settings.optimizeImageSize)
+					.onChange(async (value) => {
+						this.plugin.settings.optimizeImageSize = value;
+						await this.plugin.saveSettings();
+					}),
+			);
+
+		new Setting(containerEl)
+			.setName("Strip alpha channel")
+			.setDesc("Flatten transparency to a white background before exporting. Reduces file size for JPG. Has no effect on SVG.")
+			.addToggle((toggle) =>
+				toggle
+					.setValue(this.plugin.settings.stripAlpha)
+					.onChange(async (value) => {
+						this.plugin.settings.stripAlpha = value;
+						await this.plugin.saveSettings();
+					}),
+			);
+
+		new Setting(containerEl)
+			.setName("Export quality")
+			.setDesc("Compression quality for JPG exports (0.1 = smallest, 1.0 = best). Has no effect on PNG or SVG.")
+			.addSlider((slider) =>
+				slider
+					.setLimits(0.1, 1.0, 0.05)
+					.setValue(this.plugin.settings.exportQuality)
+					.setDynamicTooltip()
+					.onChange(async (value) => {
+						this.plugin.settings.exportQuality = value;
 						await this.plugin.saveSettings();
 					}),
 			);

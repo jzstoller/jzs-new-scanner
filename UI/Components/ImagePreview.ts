@@ -374,7 +374,7 @@ export class ImagePreview {
 		renderPlaceholder(this.ctx, cssWidth, cssHeight, this.placeholderConfig);
 	}
 
-	public darawImage(file: File) {
+	public darawImage(file: File, onReady?: () => void) {
 		// Clean up previous object URL if exists
 		if (this.img?.src?.startsWith("blob:")) {
 			URL.revokeObjectURL(this.img.src);
@@ -384,8 +384,6 @@ export class ImagePreview {
 		const img = new Image();
 		img.src = objectUrl;
 
-		// decode() guarantees the image is fully decoded before we read dimensions
-		// This fixes the intermittent iOS issue where onload fires before pixel data is ready
 		img.decode()
 			.then(() => {
 				this.img = img;
@@ -404,6 +402,8 @@ export class ImagePreview {
 				this.imgHeight = cssHeight;
 
 				this.ctx.drawImage(this.img, 0, 0, cssWidth, cssHeight);
+
+				onReady?.();
 			})
 			.catch((err) => {
 				console.error("Failed to decode image:", err);
@@ -664,17 +664,28 @@ export class ImagePreview {
 	 * Creates a temporary canvas with only the image content
 	 * @returns Canvas element ready for export with transparent background
 	 */
-	public getExportCanvas(): HTMLCanvasElement {
+	public getExportCanvas(targetLongEdge?: number): HTMLCanvasElement {
 		if (!this.img) {
 			throw new Error("No image loaded");
 		}
 
-		// Create a full-resolution canvas for export so the saved file matches
-		// the original image resolution instead of the preview size.
 		const dimensions = this.getSourceDimensions();
+
+		// Apply resize at canvas creation time so the encoder never sees the full-res image
+		let exportWidth = dimensions.width;
+		let exportHeight = dimensions.height;
+		if (targetLongEdge) {
+			const longEdge = Math.max(exportWidth, exportHeight);
+			if (longEdge > targetLongEdge) {
+				const scale = targetLongEdge / longEdge;
+				exportWidth = Math.round(exportWidth * scale);
+				exportHeight = Math.round(exportHeight * scale);
+			}
+		}
+
 		const exportCanvas = document.createElement("canvas");
-		exportCanvas.width = dimensions.width;
-		exportCanvas.height = dimensions.height;
+		exportCanvas.width = exportWidth;
+		exportCanvas.height = exportHeight;
 		const exportCtx = exportCanvas.getContext("2d");
 
 		if (!exportCtx) {
@@ -684,8 +695,8 @@ export class ImagePreview {
 		drawImageWithRotation(
 			exportCtx,
 			this.img,
-			dimensions.width,
-			dimensions.height,
+			exportWidth,
+			exportHeight,
 			this.toRotateDegree,
 		);
 

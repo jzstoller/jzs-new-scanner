@@ -62,6 +62,44 @@ export function validateFilename(
 }
 
 /**
+ * Remove alpha channel by drawing onto an opaque RGB canvas
+ */
+export function stripAlphaChannel(canvas: HTMLCanvasElement): HTMLCanvasElement {
+	const rgbCanvas = document.createElement("canvas");
+	rgbCanvas.width = canvas.width;
+	rgbCanvas.height = canvas.height;
+
+	const ctx = rgbCanvas.getContext("2d");
+	if (!ctx) return canvas;
+
+	ctx.fillStyle = "#ffffff";
+	ctx.fillRect(0, 0, rgbCanvas.width, rgbCanvas.height);
+	ctx.drawImage(canvas, 0, 0);
+
+	return rgbCanvas;
+}
+
+/**
+ * Resize canvas so its longest edge equals targetSize px, maintaining aspect ratio.
+ * Returns the same canvas unchanged if it's already smaller.
+ */
+export function resizeCanvas(
+	canvas: HTMLCanvasElement,
+	targetLongEdge: number = 2000,
+): HTMLCanvasElement {
+	const { width, height } = canvas;
+	const longEdge = Math.max(width, height);
+	if (longEdge <= targetLongEdge) return canvas;
+
+	const scale = targetLongEdge / longEdge;
+	const out = document.createElement("canvas");
+	out.width = Math.round(width * scale);
+	out.height = Math.round(height * scale);
+	out.getContext("2d")!.drawImage(canvas, 0, 0, out.width, out.height);
+	return out;
+}
+
+/**
  * Export canvas to JPG blob
  * @param canvas - Canvas element to export
  * @param quality - JPEG quality (0.0 to 1.0, default 0.92)
@@ -175,12 +213,12 @@ export function exportCanvasToSVG(
 
 	// Create SVG with embedded PNG
 	const svg = `<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" 
-     width="${exportCanvas.width}" 
+<svg xmlns="http://www.w3.org/2000/svg"
+     width="${exportCanvas.width}"
      height="${exportCanvas.height}"
      viewBox="0 0 ${exportCanvas.width} ${exportCanvas.height}">
-  <image href="${pngDataURL}" 
-         width="${exportCanvas.width}" 
+  <image href="${pngDataURL}"
+         width="${exportCanvas.width}"
          height="${exportCanvas.height}"/>
 </svg>`;
 

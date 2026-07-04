@@ -56,7 +56,9 @@ export class ScannerModal extends Modal {
 			.setTooltip("Upload image from gallery")
 			.setCta()
 			.onClick(() =>
-				uploadImageToCanvas(this.canvas.darawImage.bind(this.canvas)),
+				uploadImageToCanvas((file) => {
+					this.canvas.darawImage(file, () => this.detectAndShowCorners());
+				}),
 			);
 
 		this.btnDetectCorners = new ButtonComponent(this.buttonWrapper)
@@ -72,10 +74,10 @@ export class ScannerModal extends Modal {
 		// Initialize export controls
 		this.exportControls = new ExportControls(
 			this.app,
-			() => this.canvas.getExportCanvas(),
+			(targetLongEdge?: number) => this.canvas.getExportCanvas(targetLongEdge),
 			this.plugin,
 			() => this.canvas.isImageLoaded(),
-			() => this.close(), // Close scanner modal after export
+			() => this.close(),
 		);
 		this.btnExport = this.exportControls.createExportButton(this.buttonWrapper);
 
@@ -115,19 +117,15 @@ export class ScannerModal extends Modal {
 		const detectedCorners = detectPageCorners(imageData);
 
 		if (detectedCorners) {
-			// Scale corners from device pixels to CSS pixels
+			const dpr = window.devicePixelRatio || 1;
 			const scaledCorners = detectedCorners.map(corner => ({
 				x: corner.x / dpr,
 				y: corner.y / dpr,
-				isDragging: false
+				isDragging: false,
 			}));
 
-			new Notice(`✓ Detected corners at: TL(${Math.round(scaledCorners[0].x)},${Math.round(scaledCorners[0].y)}) TR(${Math.round(scaledCorners[1].x)},${Math.round(scaledCorners[1].y)}) BL(${Math.round(scaledCorners[2].x)},${Math.round(scaledCorners[2].y)}) BR(${Math.round(scaledCorners[3].x)},${Math.round(scaledCorners[3].y)})`, 8000);
-
-			// Show the detected corners on the canvas
 			const { success } = this.canvas.toggleCroppingPoints(true, scaledCorners);
 			if (success) {
-				// Hide main buttons and show confirm/cancel buttons
 				this.buttonWrapper.hide();
 				this.confirmButtonWrapper.show();
 			} else {
