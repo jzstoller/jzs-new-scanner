@@ -5,12 +5,16 @@ interface HandwrittenScannerSettings {
 	exportDefaultFolder: string;
 	exportDefaultFormat: ExportFormat;
 	closeAfterExport: boolean;
+	insertLinkAfterExport: boolean;
+	svgTintColor: string;
 }
 
 const DEFAULT_SETTINGS: HandwrittenScannerSettings = {
 	exportDefaultFolder: "Scanned",
 	exportDefaultFormat: "png",
 	closeAfterExport: true,
+	insertLinkAfterExport: true,
+	svgTintColor: "#000000",
 };
 
 export default class HandWrittenPlugin extends Plugin {
@@ -19,27 +23,21 @@ export default class HandWrittenPlugin extends Plugin {
 	async onload() {
 		await this.loadSettings();
 
-		// This creates an icon in the left ribbon.
-		this.addRibbonIcon("scan", "JZS Simple Scanner2", async (_evt: MouseEvent) => {
-			// Called when the user clicks the icon.
-			// Lazy load ScannerModal only when needed
+		this.addRibbonIcon("scan", "JZS Handwritten Scanner", async (_evt: MouseEvent) => {
 			const { ScannerModal } = await import("./UI/Modals/scannerModal");
 			new ScannerModal(this.app, this).open();
 		});
 
-		// This adds a simple command that can be triggered anywhere
 		this.addCommand({
 			id: "open-handwritten-scanner",
 			name: "Open handwritten scanner",
 			icon: "scan",
 			callback: async () => {
-				// Lazy load ScannerModal only when needed
 				const { ScannerModal } = await import("./UI/Modals/scannerModal");
 				new ScannerModal(this.app, this).open();
 			},
 		});
 
-		// This adds a settings tab so the user can configure various aspects of the plugin
 		this.addSettingTab(new HandwrittenScannerSettingTab(this.app, this));
 	}
 
@@ -86,7 +84,7 @@ class HandwrittenScannerSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName("Default export format")
-			.setDesc("Default file format for exporting scanned images")
+			.setDesc("File format for exported scanned images")
 			.addDropdown((dropdown) =>
 				dropdown
 					.addOption("png", "PNG")
@@ -95,6 +93,30 @@ class HandwrittenScannerSettingTab extends PluginSettingTab {
 					.setValue(this.plugin.settings.exportDefaultFormat)
 					.onChange(async (value: ExportFormat) => {
 						this.plugin.settings.exportDefaultFormat = value;
+						await this.plugin.saveSettings();
+					}),
+			);
+
+		new Setting(containerEl)
+			.setName("SVG tint color")
+			.setDesc("Color applied to ink areas when exporting as SVG")
+			.addColorPicker((picker) =>
+				picker
+					.setValue(this.plugin.settings.svgTintColor)
+					.onChange(async (value) => {
+						this.plugin.settings.svgTintColor = value;
+						await this.plugin.saveSettings();
+					}),
+			);
+
+		new Setting(containerEl)
+			.setName("Insert link after export")
+			.setDesc("Automatically insert a markdown image link into the active note after exporting")
+			.addToggle((toggle) =>
+				toggle
+					.setValue(this.plugin.settings.insertLinkAfterExport)
+					.onChange(async (value) => {
+						this.plugin.settings.insertLinkAfterExport = value;
 						await this.plugin.saveSettings();
 					}),
 			);
