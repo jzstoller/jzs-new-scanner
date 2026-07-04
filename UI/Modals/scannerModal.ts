@@ -99,14 +99,14 @@ export class ScannerModal extends Modal {
 		}
 
 		// Get image data for page detection
-		const exportCanvas = this.canvas.getExportCanvas();
-		const ctx = exportCanvas.getContext("2d");
+		const previewCanvas = this.canvas.getCanvas();
+		const ctx = previewCanvas.getContext("2d");
 		if (!ctx) {
 			new Notice("Failed to get canvas context");
 			return;
 		}
 
-		const imageData = ctx.getImageData(0, 0, exportCanvas.width, exportCanvas.height);
+		const imageData = ctx.getImageData(0, 0, previewCanvas.width, previewCanvas.height);
 		const dpr = window.devicePixelRatio || 1;
 
 		new Notice("Detecting page corners...", 2000);

@@ -323,6 +323,49 @@ export class ImagePreview {
 		this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 	}
 
+	private getDisplayDimensions(): { width: number; height: number } {
+		return {
+			width: parseInt(this.canvas.style.width),
+			height: parseInt(this.canvas.style.height),
+		};
+	}
+
+	private getSourceDimensions(): { width: number; height: number } {
+		if (!this.img) {
+			throw new Error("No image loaded");
+		}
+
+		const sourceWidth = this.img.naturalWidth || this.img.width;
+		const sourceHeight = this.img.naturalHeight || this.img.height;
+		return calculateRotatedDimensions(sourceWidth, sourceHeight, this.toRotateDegree);
+	}
+
+	private createHighResWorkingCanvas(): HTMLCanvasElement {
+		if (!this.img) {
+			throw new Error("No image loaded");
+		}
+
+		const dimensions = this.getSourceDimensions();
+		const workingCanvas = document.createElement("canvas");
+		workingCanvas.width = dimensions.width;
+		workingCanvas.height = dimensions.height;
+
+		const workingCtx = workingCanvas.getContext("2d");
+		if (!workingCtx) {
+			throw new Error("Failed to create working canvas context");
+		}
+
+		drawImageWithRotation(
+			workingCtx,
+			this.img,
+			dimensions.width,
+			dimensions.height,
+			this.toRotateDegree,
+		);
+
+		return workingCanvas;
+	}
+
 	private initializePlaceholder() {
 		const cssWidth = parseInt(this.canvas.style.width);
 		const cssHeight = parseInt(this.canvas.style.height);
@@ -527,26 +570,38 @@ export class ImagePreview {
 			};
 		}
 
-		// IMPORTANT: Redraw the image WITHOUT crop points before capturing
-		this.redrawImage();
+		const workingCanvas = this.createHighResWorkingCanvas();
+		const workingCtx = workingCanvas.getContext("2d");
+		if (!workingCtx) {
+			return {
+				success: false,
+				message: "Failed to create working canvas context.",
+			};
+		}
 
-		// Get current canvas state as image data
-		const cssWidth = parseInt(this.canvas.style.width);
-		const cssHeight = parseInt(this.canvas.style.height);
-		const dpr = window.devicePixelRatio || 1;
+		const sourceImageData = workingCtx.getImageData(
+			0,
+			0,
+			workingCanvas.width,
+			workingCanvas.height,
+		);
 
-		const actualWidth = Math.floor(cssWidth * dpr);
-		const actualHeight = Math.floor(cssHeight * dpr);
-
-	const sourceImageData = this.ctx.getImageData(0, 0, actualWidth, actualHeight);
+		const displayDimensions = this.getDisplayDimensions();
+		const scaleX = workingCanvas.width / displayDimensions.width;
+		const scaleY = workingCanvas.height / displayDimensions.height;
+		const scaledCropPoints = this.cropPoints.map((point) => ({
+			...point,
+			x: point.x * scaleX,
+			y: point.y * scaleY,
+		}));
 
 	// Perform the transformation
 		const result = performPerspectiveCrop(
 			sourceImageData,
-			actualWidth,
-			actualHeight,
-			this.cropPoints,
-			dpr,
+			workingCanvas.width,
+			workingCanvas.height,
+			scaledCropPoints,
+			1,
 		);
 
 		if (!result.success || !result.imageData || !result.dimensions) {
@@ -617,33 +672,29 @@ export class ImagePreview {
 	 * @returns Canvas element ready for export with transparent background
 	 */
 	public getExportCanvas(): HTMLCanvasElement {
-		const cssWidth = parseInt(this.canvas.style.width);
-		const cssHeight = parseInt(this.canvas.style.height);
-		const dpr = window.devicePixelRatio || 1;
+		if (!this.img) {
+			throw new Error("No image loaded");
+		}
 
-		// Create temporary canvas for clean export
+		// Create a full-resolution canvas for export so the saved file matches
+		// the original image resolution instead of the preview size.
+		const dimensions = this.getSourceDimensions();
 		const exportCanvas = document.createElement("canvas");
-		exportCanvas.width = this.canvas.width;
-		exportCanvas.height = this.canvas.height;
+		exportCanvas.width = dimensions.width;
+		exportCanvas.height = dimensions.height;
 		const exportCtx = exportCanvas.getContext("2d");
 
 		if (!exportCtx) {
 			throw new Error("Failed to create export canvas context");
 		}
 
-		// Set transform to match display canvas
-		exportCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
-
-		// Draw the image without checkerboard background
-		if (this.img) {
-			drawImageWithRotation(
-				exportCtx,
-				this.img,
-				cssWidth,
-				cssHeight,
-				this.toRotateDegree,
-			);
-		}
+		drawImageWithRotation(
+			exportCtx,
+			this.img,
+			dimensions.width,
+			dimensions.height,
+			this.toRotateDegree,
+		);
 
 		return exportCanvas;
 	}
