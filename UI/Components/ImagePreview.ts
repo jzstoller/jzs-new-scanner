@@ -388,22 +388,29 @@ export class ImagePreview {
 			.then(() => {
 				this.img = img;
 				URL.revokeObjectURL(objectUrl);
-
 				this.resizeToImage(this.img.naturalWidth, this.img.naturalHeight);
 
-				const cssWidth = parseInt(this.canvas.style.width);
-				const cssHeight = parseInt(this.canvas.style.height);
+				// Wait for layout flush so canvas CSS dimensions are readable
+				requestAnimationFrame(() => {
+					const cssWidth = parseInt(this.canvas.style.width);
+					const cssHeight = parseInt(this.canvas.style.height);
 
-				fillCanvasWithCheckerboard(this.ctx, cssWidth, cssHeight);
+					if (!cssWidth || !cssHeight) {
+						console.error("Canvas dimensions not ready after layout flush");
+						return;
+					}
 
-				this.imgX = 0;
-				this.imgY = 0;
-				this.imgWidth = cssWidth;
-				this.imgHeight = cssHeight;
+					fillCanvasWithCheckerboard(this.ctx, cssWidth, cssHeight);
 
-				this.ctx.drawImage(this.img, 0, 0, cssWidth, cssHeight);
+					this.imgX = 0;
+					this.imgY = 0;
+					this.imgWidth = cssWidth;
+					this.imgHeight = cssHeight;
 
-				onReady?.();
+					this.ctx.drawImage(this.img, 0, 0, cssWidth, cssHeight);
+
+					onReady?.();
+				});
 			})
 			.catch((err) => {
 				console.error("Failed to decode image:", err);
