@@ -375,47 +375,40 @@ export class ImagePreview {
 	}
 
 	public darawImage(file: File) {
-		// Clean up previous image if exists
-		if (this.img) {
-			if (this.img.src && this.img.src.startsWith('blob:')) {
-				URL.revokeObjectURL(this.img.src);
-			}
+		// Clean up previous object URL if exists
+		if (this.img?.src?.startsWith("blob:")) {
+			URL.revokeObjectURL(this.img.src);
 		}
 
-		this.img = new Image();
+		const objectUrl = URL.createObjectURL(file);
+		const img = new Image();
+		img.src = objectUrl;
 
-		this.img.onload = () => {
-			// Small delay for mobile to ensure DOM is ready
-			setTimeout(() => {
-				// Resize canvas to match image aspect ratio (eliminates letterboxing)
-				this.resizeToImage(this.img.width, this.img.height);
+		// decode() guarantees the image is fully decoded before we read dimensions
+		// This fixes the intermittent iOS issue where onload fires before pixel data is ready
+		img.decode()
+			.then(() => {
+				this.img = img;
+				URL.revokeObjectURL(objectUrl);
 
-				// Get NEW canvas dimensions after resize
+				this.resizeToImage(this.img.naturalWidth, this.img.naturalHeight);
+
 				const cssWidth = parseInt(this.canvas.style.width);
 				const cssHeight = parseInt(this.canvas.style.height);
 
-				// Clear canvas and draw checkerboard pattern for transparency visibility
 				fillCanvasWithCheckerboard(this.ctx, cssWidth, cssHeight);
 
-				// Image fills entire canvas (no letterboxing, maximum resolution)
 				this.imgX = 0;
 				this.imgY = 0;
 				this.imgWidth = cssWidth;
 				this.imgHeight = cssHeight;
 
-				// Draw image at full canvas size
 				this.ctx.drawImage(this.img, 0, 0, cssWidth, cssHeight);
-
-				URL.revokeObjectURL(this.img.src);
-			}, 50);
-		};
-
-		this.img.onerror = () => {
-			console.error("Failed to load image");
-			URL.revokeObjectURL(this.img.src);
-		};
-
-		this.img.src = URL.createObjectURL(file);
+			})
+			.catch((err) => {
+				console.error("Failed to decode image:", err);
+				URL.revokeObjectURL(objectUrl);
+			});
 	}
 
 	private redrawImage() {
