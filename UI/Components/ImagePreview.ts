@@ -87,7 +87,7 @@ export class ImagePreview {
 	}
 
 	public setup() {
-		const ctx = this.canvas.getContext("2d");
+		const ctx = this.canvas.getContext("2d", { willReadFrequently: true });
 		if (!ctx) throw new Error("Failed to get 2D contect");
 		this.ctx = ctx;
 
@@ -350,7 +350,7 @@ export class ImagePreview {
 		workingCanvas.width = dimensions.width;
 		workingCanvas.height = dimensions.height;
 
-		const workingCtx = workingCanvas.getContext("2d");
+		const workingCtx = workingCanvas.getContext("2d", { willReadFrequently: true });
 		if (!workingCtx) {
 			throw new Error("Failed to create working canvas context");
 		}
@@ -571,7 +571,7 @@ export class ImagePreview {
 		}
 
 		const workingCanvas = this.createHighResWorkingCanvas();
-		const workingCtx = workingCanvas.getContext("2d");
+		const workingCtx = workingCanvas.getContext("2d", { willReadFrequently: true });
 		if (!workingCtx) {
 			return {
 				success: false,
@@ -693,7 +693,7 @@ export class ImagePreview {
 		const exportCanvas = document.createElement("canvas");
 		exportCanvas.width = exportWidth;
 		exportCanvas.height = exportHeight;
-		const exportCtx = exportCanvas.getContext("2d");
+		const exportCtx = exportCanvas.getContext("2d", { willReadFrequently: true });
 
 		if (!exportCtx) {
 			throw new Error("Failed to create export canvas context");

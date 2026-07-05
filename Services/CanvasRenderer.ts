@@ -288,7 +288,7 @@ export function renderMagnifier(
 	const destSize = config.radius * 2;
 	tempCanvas.width = destSize;
 	tempCanvas.height = destSize;
-	const tempCtx = tempCanvas.getContext("2d");
+	const tempCtx = tempCanvas.getContext("2d", { willReadFrequently: true });
 
 	if (!tempCtx) {
 		return;
@@ -298,7 +298,7 @@ export function renderMagnifier(
 	const sampleCanvas = document.createElement("canvas");
 	sampleCanvas.width = actualSourceSize;
 	sampleCanvas.height = actualSourceSize;
-	const sampleCtx = sampleCanvas.getContext("2d");
+	const sampleCtx = sampleCanvas.getContext("2d", { willReadFrequently: true });
 
 	if (!sampleCtx) {
 		return;

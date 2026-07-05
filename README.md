@@ -2,8 +2,6 @@
 
 An Obsidian plugin for scanning and processing documents. Transform documents with automatic perspective correction.
 
-<a href="https://www.buymeacoffee.com/Showwaiyan" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" ></a>
-
 ## DEMO
 
 ## Features
@@ -55,7 +53,7 @@ An Obsidian plugin for scanning and processing documents. Transform documents wi
 2. Add this plugin via BRAT:
    - Open BRAT settings (Settings → BRAT)
    - Click "Add Beta plugin"
-   - Enter: `jzstoller/obsidian-scan-sketch`
+   - Enter: `jzstoller/obsidian-simple-scanner2`
    - Click "Add Plugin"
 
 3. Enable the plugin:
@@ -148,7 +146,7 @@ This applies a manila (tan) page background with black pen styling and recolors 
 ### Project Structure
 
 ```
-obsidian-simple-scanner2/
+simple-scanner2/
 ├── main.ts                 # Plugin entry point
 ├── Services/              # Business logic & utilities
 │   ├── CanvasRenderer.ts       # Canvas drawing utilities

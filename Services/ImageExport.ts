@@ -69,7 +69,7 @@ export function stripAlphaChannel(canvas: HTMLCanvasElement): HTMLCanvasElement 
 	rgbCanvas.width = canvas.width;
 	rgbCanvas.height = canvas.height;
 
-	const ctx = rgbCanvas.getContext("2d");
+	const ctx = rgbCanvas.getContext("2d", { willReadFrequently: true });
 	if (!ctx) return canvas;
 
 	ctx.fillStyle = "#ffffff";
@@ -163,7 +163,7 @@ export function tintCanvasImage(
 	tempCanvas.width = canvas.width;
 	tempCanvas.height = canvas.height;
 
-	const ctx = tempCanvas.getContext("2d")!;
+	const ctx = tempCanvas.getContext("2d", { willReadFrequently: true })!;
 	ctx.drawImage(canvas, 0, 0);
 
 	const imageData = ctx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);

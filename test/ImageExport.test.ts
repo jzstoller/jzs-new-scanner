@@ -120,7 +120,7 @@ describe("ImageExport", () => {
 			canvas.height = 100;
 
 			// Draw something on canvas
-			const ctx = canvas.getContext("2d");
+			const ctx = canvas.getContext("2d", { willReadFrequently: true });
 			if (ctx) {
 				ctx.fillStyle = "red";
 				ctx.fillRect(0, 0, 100, 100);
@@ -157,7 +157,7 @@ describe("ImageExport", () => {
 			canvas.height = 150;
 
 			// Draw something on canvas
-			const ctx = canvas.getContext("2d");
+			const ctx = canvas.getContext("2d", { willReadFrequently: true });
 			if (ctx) {
 				ctx.fillStyle = "blue";
 				ctx.fillRect(0, 0, 200, 150);
@@ -231,7 +231,7 @@ describe("ImageExport", () => {
 			canvas = document.createElement("canvas");
 			canvas.width = 100;
 			canvas.height = 100;
-			const ctx = canvas.getContext("2d")!;
+			const ctx = canvas.getContext("2d", { willReadFrequently: true })!;
 			ctx.fillStyle = "black";
 			ctx.fillRect(0, 0, 100, 100);
 		});

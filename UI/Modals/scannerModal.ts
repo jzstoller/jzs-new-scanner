@@ -108,7 +108,7 @@ export class ScannerModal extends Modal {
 
 		// Get image data for page detection
 		const previewCanvas = this.canvas.getCanvas();
-		const ctx = previewCanvas.getContext("2d");
+		const ctx = previewCanvas.getContext("2d", { willReadFrequently: true });
 		if (!ctx) {
 			new Notice("Failed to get canvas context");
 			return;

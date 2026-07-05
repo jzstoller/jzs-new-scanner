@@ -77,7 +77,7 @@ export function performPerspectiveCrop(
 			for (let x = 0; x < dimensions.width; x++) {
 				// Transform destination coordinates to source coordinates
 				const srcCoords = perspT.transformInverse(x, y);
-				
+
 				// Scale coordinates by DPR to match the actual canvas dimensions
 				const srcX = Math.round(srcCoords[0] * dpr);
 				const srcY = Math.round(srcCoords[1] * dpr);
@@ -134,7 +134,7 @@ export function createImageFromImageData(
 		const tempCanvas = document.createElement("canvas");
 		tempCanvas.width = width ?? imageData.width;
 		tempCanvas.height = height ?? imageData.height;
-		const tempCtx = tempCanvas.getContext("2d");
+		const tempCtx = tempCanvas.getContext("2d", { willReadFrequently: true });
 
 		if (!tempCtx) {
 			reject(new Error("Failed to create temporary canvas context."));
@@ -174,10 +174,10 @@ export function drawImageWithRotation(
 ): void {
 	// Note: Canvas should already have background (e.g., checkerboard) drawn by caller
 	// Do not clear here to preserve the background pattern for transparency visibility
-	
+
 	// Normalize rotation
 	const normalizedRotation = ((rotation % 360) + 360) % 360;
-	
+
 	// For 90° and 270°, we need to draw at swapped dimensions
 	// before rotating, because the canvas is already resized
 	const isRotated90or270 = normalizedRotation === 90 || normalizedRotation === 270;
@@ -225,12 +225,12 @@ export function calculateRotatedDimensions(
 ): ImageDimensions {
 	// Normalize rotation to 0-360 range
 	const normalizedRotation = ((rotation % 360) + 360) % 360;
-	
+
 	// If at 90° or 270°, swap dimensions (portrait ↔ landscape)
 	if (normalizedRotation === 90 || normalizedRotation === 270) {
 		return { width: imageHeight, height: imageWidth };
 	}
-	
+
 	// 0° or 180°: use original dimensions
 	return { width: imageWidth, height: imageHeight };
 }

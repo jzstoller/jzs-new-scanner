@@ -45,7 +45,7 @@ export async function compressCanvas(
 	const out = document.createElement("canvas");
 	out.width = outW;
 	out.height = outH;
-	const ctx = out.getContext("2d");
+	const ctx = out.getContext("2d", { willReadFrequently: true });
 	if (!ctx) throw new Error("Could not get 2D canvas context");
 
 	ctx.fillStyle = opts.backgroundColor;

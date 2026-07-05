@@ -77,7 +77,7 @@
 
 			const fileInput = document.getElementById("fileInput");
 			const canvas = document.getElementById("canvas");
-			const ctx = canvas.getContext("2d");
+			const ctx = canvas.getContext("2d", { willReadFrequently: true });
 			const status = document.getElementById("status");
 
 			fileInput.addEventListener("change", (e) => {

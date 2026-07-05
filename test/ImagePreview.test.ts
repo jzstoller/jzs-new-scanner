@@ -17,7 +17,7 @@ describe("ImagePreview", () => {
 		document.body.appendChild(parent);
 
 		canvas = document.createElement("canvas");
-		mockCtx = canvas.getContext("2d");
+		mockCtx = canvas.getContext("2d", { willReadFrequently: true });
 
 		imagePreview = new ImagePreview(parent, canvas, 4 / 3);
 	});
