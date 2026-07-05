@@ -1,314 +1,254 @@
 # Simple Scanner2
 
-An Obsidian plugin for scanning and processing documents. Transform documents with automatic perspective correction.
-
-## DEMO
+An Obsidian plugin for scanning and processing handwritten notes and documents. Capture or upload a photo, let the plugin automatically detect the page corners, apply perspective correction, and save the result directly to your vault.
 
 ## Features
 
-### 📸 Image Upload & Processing
-- **Multiple Input Methods**: Upload from file picker or capture directly from camera
-- **Smart Perspective Correction**: Automatically detect and correct document corners with interactive crop points
-- **HiDPI Support**: Full support for high-resolution displays (Retina, 4K, etc.)
+### Instant File Picker on Launch
+- Clicking the ribbon icon or running the command immediately opens the system file picker (macOS) or the native photo sheet — "Photo Library / Take Photo / Choose File" — (iOS/iPadOS)
+- The scanner modal opens only after a file is selected, so you never see an empty canvas
 
-### 🎨 Advanced Image Enhancement
+### Auto Corner Detection
+- After an image loads, the plugin automatically runs a full computer-vision pipeline to find the four corners of the page
+- Pipeline: HSV paper mask → median blur → Gaussian blur → Sobel edge detection → non-maximum suppression → hysteresis thresholding → double dilation → contour finding → convex hull → quad approximation → validation
+- Detected corners are shown immediately as draggable blue handles so you can review and adjust before confirming
+- If detection fails, a notice is shown and you can place corners manually using the Crop button
 
-### 💾 Export Options
-- **Multiple Formats**:
-  - PNG (with transparency support)
-  - SVG (embedded PNG wrapper)
-- **Flexible Storage**:
-  - Configurable default export folder
-  - Automatic timestamp-based filename generation
-  - Custom filename support with validation
-  - Direct save to Obsidian vault
+### Interactive Perspective Crop
+- Four draggable corner handles (blue circles with white outline)
+- A magnifying loupe appears while dragging a handle for precise placement
+- Confirm (✓) applies the perspective transform and replaces the canvas image
+- Cancel (✗) removes the handles without modifying the image
+- Crop operates on the full native image resolution, not the scaled preview
 
-### 🎯 User Experience
-- **Visual Feedback**:
-  - Magnifying loupe when dragging crop points
+### Manual Crop Mode
+- The Crop button places handles at the four corners of the current image
+- Drag any handle to define an arbitrary quadrilateral
+- Confirm to apply perspective correction
 
-- **Touch & Mouse Support**:
-  - Responsive controls for both desktop and mobile
-  - Larger touch targets (30px) for mobile devices
-  - Drag-and-drop crop point adjustment
+### HiDPI / Retina Support
+- Canvas is sized using `devicePixelRatio` so rendering is sharp on Retina, 4K, and high-DPI mobile displays
+- Image loading uses `img.decode()` followed by `requestAnimationFrame` to guarantee pixel data and layout dimensions are both ready before drawing — fixes intermittent blank-canvas issues on iOS
+
+### Export
+- Export happens on a single button click with no modal — all options are configured in Settings
+- PNG: lossless, preserves transparency
+- JPG: lossy, configurable quality, alpha flattened to white background
+- SVG: PNG embedded in an SVG wrapper, with optional ink tint color applied before embedding
+- Exported filename is auto-generated as `scan-YYYY-MM-DD-HHmmss`
+- File is saved directly to the configured vault folder
+- A success notice shows the exported dimensions and file size in KB
+- Optionally inserts `![[path/to/file]]` at the cursor in the active note
+- Optionally closes the scanner modal after export
+
+### Touch and Mouse Support
+- Mouse: 20 px hit radius on crop handles
+- Touch: 30 px hit radius on crop handles for easier finger targeting
+- Touch move and touchstart use `preventDefault` to block scroll interference
+
+---
 
 ## Installation
 
 ### From Obsidian Community Plugins (Coming Soon)
-1. Open Obsidian Settings
-2. Navigate to Community Plugins
-3. Search for "Simple Scanner2"
-4. Click Install
-5. Enable the plugin
+1. Open Obsidian Settings → Community Plugins
+2. Search for "Simple Scanner2"
+3. Click Install, then Enable
 
-### Beta Testing with BRAT (Recommended for now)
+### Beta Testing with BRAT (Recommended)
 
-**⚠️ Important:** Manual installation may cause the plugin to crash on mobile devices. Until the official community plugin release, we recommend using BRAT for installation.
+> **Note:** Until the official community plugin release, BRAT is the recommended installation method.
 
-1. Install the [BRAT plugin](https://github.com/TfTHacker/obsidian42-brat) from Obsidian Community Plugins:
-   - Open Obsidian Settings → Community Plugins
-   - Search for "BRAT" (Beta Reviewers Auto-update Tool)
-   - Install and enable BRAT
+1. Install [BRAT](https://github.com/TfTHacker/obsidian42-brat) from Community Plugins
+2. Open BRAT settings → "Add Beta plugin"
+3. Enter: `jzstoller/jzs-new-scanner`
+4. Click "Add Plugin"
+5. Go to Settings → Community Plugins and enable "Simple Scanner2"
 
-2. Add this plugin via BRAT:
-   - Open BRAT settings (Settings → BRAT)
-   - Click "Add Beta plugin"
-   - Enter: `jzstoller/obsidian-simple-scanner2`
-   - Click "Add Plugin"
+BRAT keeps the plugin updated automatically with each new release.
 
-3. Enable the plugin:
-   - Go to Settings → Community Plugins
-   - Find "Simple Scanner2" and enable it
+### Manual Installation
 
-BRAT will automatically keep the plugin updated with the latest releases.
+> **Warning:** Manual installation bypasses BRAT's update mechanism. You will need to re-download files for each update.
 
-### Manual Installation (Desktop Only)
-
-**⚠️ Warning:** Manual installation can cause crashes on mobile devices. Use BRAT instead if you use Obsidian on mobile.
-
-1. Download the latest release from GitHub
-2. Extract files to `VaultFolder/.obsidian/plugins/simple-scanner2/`
+1. Download `main.js`, `manifest.json`, and `styles.css` from the [latest GitHub release](https://github.com/jzstoller/jzs-new-scanner/releases/latest)
+2. Copy them to `<vault>/.obsidian/plugins/jzs-new-scanner/`
 3. Reload Obsidian
-4. Enable plugin in Settings → Community Plugins
+4. Enable the plugin in Settings → Community Plugins
+
+---
 
 ## Usage
 
 ### Basic Workflow
 
-1. **Open Scanner Modal**
-   - Click the scan icon in the ribbon (left sidebar)
-   - Or use Command Palette: "Open Scanner"
+1. Click the scan icon in the ribbon, or run "Open scanner" from the Command Palette
+2. The system file picker (or iOS photo sheet) opens immediately
+3. Select or capture an image
+4. The scanner modal opens with the image loaded and corner handles already placed
+5. Drag the four blue handles to align with the document corners if needed
+6. Tap ✓ to apply perspective correction
+7. Tap the export button (download icon) to save to your vault
 
-2. **Upload Image**
-   - Click "Upload" to select from files
-   - Or click "Camera" to capture directly (if available)
+### Perspective Crop in Detail
 
-3. **Adjust & Process**
-   - **Crop**: Click "Crop" to show corner points, drag to adjust, click "Apply"
+1. Corner handles appear automatically after the image loads (auto-detection)
+2. If auto-detection fails, tap the Crop button to place handles at the image corners manually
+3. Drag each handle to the corresponding corner of the document
+4. The magnifying loupe shows a zoomed view of the area under your finger/cursor while dragging
+5. Tap ✓ to transform the quadrilateral into a rectangle — the canvas updates to show the corrected image
+6. Tap ✗ to cancel without changing the image
 
-4. **Export**
-   - Click "Export" button (download icon)
-   - Choose format (PNG/SVG)
-   - Enter filename or use auto-generated timestamp
-   - Click "Export" to save to vault
+### Re-uploading an Image
 
-### Perspective Crop
+While the modal is open, tap the image button (gallery icon) to replace the current image with a new one from the file picker.
 
-1. Click "Crop" button to show corner points
-2. Drag the four blue corner points to match document edges
-3. Click "Apply" to transform the quadrilateral into a rectangle
-4. The image automatically adjusts to the corrected perspective
+### Manual Corner Detection
+
+Tap the scan button (scan icon) to re-run auto corner detection on the current image at any time.
+
+---
 
 ## Settings
 
-Access plugin settings via Settings → Simple Scanner2:
+Access via Settings → Simple Scanner2.
 
-- **Export Default Folder**: Set the default folder for saving scanned images (default: root)
+| Setting | Default | Description |
+|---|---|---|
+| Default export folder | `Scanned` | Vault folder where exported files are saved. Supports nested paths like `Notes/Scans`. Created automatically if it does not exist. |
+| Default export format | `PNG` | File format: PNG, JPG, or SVG. |
+| SVG tint color | `#000000` | Hex color applied to ink/dark areas when exporting as SVG. Lighter pixels remain light; darker pixels shift toward this color. Has no effect on PNG or JPG exports. |
+| Optimize image size | On | Resizes the exported image so the longest edge is at most 2000 px, maintaining aspect ratio. Has no effect if the image is already smaller. |
+| Strip alpha channel | Off | Flattens transparency to a white background before exporting. Useful for JPG (which does not support transparency). Has no effect on SVG. |
+| Export quality | `0.92` | JPEG compression quality from 0.1 (smallest file) to 1.0 (best quality). Has no effect on PNG or SVG. |
+| Insert link after export | On | Inserts `![[path/to/exported/file]]` at the cursor position in the active note after a successful export. |
+| Close scanner after export | On | Automatically closes the scanner modal after a successful export. |
 
-## Optional: Enhanced Notebook Styling
+---
 
-For enhanced visual styling with notebook-themed backgrounds and pen colors, you can optionally add CSS snippets from the [Obsidian-Notebook-Themes](https://github.com/CyanVoxel/Obsidian-Notebook-Themes) repository by [@CyanVoxel](https://github.com/CyanVoxel).
+## Optional: Notebook Styling with CSS Snippets
 
-### How to Add Notebook Theme CSS:
+For notebook-themed backgrounds and pen colors, you can optionally add CSS snippets from the [Obsidian-Notebook-Themes](https://github.com/CyanVoxel/Obsidian-Notebook-Themes) repository by [@CyanVoxel](https://github.com/CyanVoxel).
+
+### How to Add
 
 1. Visit the [Obsidian-Notebook-Themes repository](https://github.com/CyanVoxel/Obsidian-Notebook-Themes)
-2. Download the CSS snippets you want (e.g., notebook background colors, pen colors)
-3. In Obsidian, go to Settings → Appearance → CSS snippets
-4. Click the folder icon to open your snippets folder
-5. Copy the CSS files into this folder
-6. Return to Obsidian and enable the snippets
+2. Download the CSS snippets you want
+3. In Obsidian: Settings → Appearance → CSS snippets → open snippets folder
+4. Copy the CSS files into that folder
+5. Return to Obsidian and enable the snippets
 
-### Available Notebook Themes:
+### Example
 
-- **Page Backgrounds**: Manila, White, Blueprint
-- **Pen Colors**: White, Gray, Black, Red, Green, Blue, Light Blue, Purple
-- **Grid Patterns**: Optional grid overlay for notebook paper effect
-- **Image Recoloring**: Recolor images to match your pen color theme
-
-**Example Usage in Notes:**
 ```markdown
 ---
 cssclasses: page-manila pen-black recolor-images
 ---
 ```
 
-This applies a manila (tan) page background with black pen styling and recolors images accordingly.
+This applies a manila page background with black pen styling and recolors embedded images.
 
-**Important Limitations:**
-- 📌 **SVG Export Only**: The notebook background and image recoloring functionality only works with **SVG exports**, not PNG exports.
-- For best results with notebook themes, always export as SVG format.
-- PNG exports will preserve transparency but won't apply CSS-based recoloring effects.
+> **Important:** CSS-based recoloring only works with **SVG exports**. PNG exports preserve transparency but are not affected by CSS `filter` or `color` rules. For notebook theme compatibility, export as SVG and set the SVG tint color in plugin settings to match your pen color.
 
-**Note**: These CSS snippets are completely optional. The plugin works perfectly without them. They simply provide additional theming options for your scanned notes to match a physical notebook aesthetic.
+These snippets are entirely optional. The plugin works without them.
 
-## Technical Architecture
+---
 
-### Project Structure
+## Technical Notes
+
+- Requires Obsidian **1.8.10** or later (`setIcon` and `setTooltip` on `ButtonComponent` require this version)
+- `isDesktopOnly: false` — works on iOS and Android
+- Uses `activeDocument` for canvas creation to support Obsidian popout windows
+- Uses `img.decode()` (not `onload`) to guarantee full pixel decode before drawing, avoiding blank-canvas issues on iOS WKWebView
+- Perspective transform uses the [perspective-transform](https://github.com/jlouthan/perspective-transform) library with flat 8-number coordinate arrays
+- Corner detection downscales to a maximum of 800 px on the long edge for performance, then scales results back to full resolution
+- Export canvas is built at full native image resolution; resize (if enabled) happens at canvas creation time so the encoder never processes an oversized image
+
+---
+
+## Project Structure
 
 ```
-simple-scanner2/
-├── main.ts                 # Plugin entry point
-├── Services/              # Business logic & utilities
-│   ├── CanvasRenderer.ts       # Canvas drawing utilities
-│   ├── CropPointManager.ts     # Crop point logic
-│   ├── ImageBackgroundRemoval.ts  # Background removal algorithms
-│   ├── ImageExport.ts          # PNG/SVG export
-│   ├── ImageFilter.ts          # Image filtering
-│   ├── ImageTransform.ts       # Rotation & perspective transforms
-│   ├── ImageUpload.ts          # File upload handling
-│   ├── Interaction.ts          # User interaction utilities
-│   ├── VaultExport.ts          # Obsidian vault operations
-│   └── types.ts                # TypeScript type definitions
-├── UI/                    # User interface components
+jzs-new-scanner/
+├── main.ts                        # Plugin entry point, settings
+├── Services/
+│   ├── CanvasRenderer.ts          # Canvas drawing utilities
+│   ├── CropPointManager.ts        # Crop point logic and ordering
+│   ├── ImageCompress.ts           # Resize + flatten + encode pipeline
+│   ├── ImageExport.ts             # PNG / JPG / SVG export functions
+│   ├── ImageTransform.ts          # Perspective crop, rotation
+│   ├── ImageUpload.ts             # File input handling
+│   ├── Interaction.ts             # Hit-testing utilities
+│   ├── PageDetection.ts           # Computer-vision corner detection
+│   ├── VaultExport.ts             # Vault folder creation and file saving
+│   └── types.ts                   # Shared TypeScript types
+├── UI/
 │   ├── Components/
-│   │   ├── BackgroundRemovalControls.ts
-│   │   ├── ExportControls.ts
-│   │   ├── FilterControls.ts
-│   │   └── ImagePreview.ts
+│   │   ├── ExportControls.ts      # Export button and export logic
+│   │   └── ImagePreview.ts        # Canvas preview, crop handles, magnifier
 │   └── Modals/
-│       ├── ExportModal.ts
-│       └── scannerModal.ts
-├── test/                  # Vitest test suite
-└── styles.css            # Plugin styles
+│       └── scannerModal.ts        # Main scanner modal
+├── test/                          # Vitest test suite
+└── styles.css                     # Plugin styles
 ```
 
-### Key Technologies
-
-- **TypeScript**: Type-safe development with strict null checks
-- **Obsidian API**: Native integration with Obsidian
-- **Canvas API**: Image rendering and manipulation
-- **perspective-transform**: Perspective correction library
-- **Vitest**: Fast unit testing with happy-dom
-- **esbuild**: Lightning-fast bundling
-
-### Code Quality
-
-- **Testing**: 125+ unit tests with >90% coverage
-- **Linting**: ESLint with TypeScript support
-- **Formatting**: EditorConfig (tabs, double quotes, LF)
-- **Type Safety**: Strict TypeScript configuration
-- **Documentation**: JSDoc comments for public APIs
+---
 
 ## Development
 
 ### Prerequisites
 - Node.js v16 or higher
-- npm or yarn
+- npm
 
 ### Setup
+
 ```bash
-# Clone the repository
-git clone https://github.com/yourusername/obsidian-simple-scanner2.git
-
-# Install dependencies
+git clone https://github.com/jzstoller/jzs-new-scanner.git
+cd jzs-new-scanner
 npm install
-
-# Start development mode (watch)
-npm run dev
-
-# Run tests
-npm test
-
-# Run tests with UI
-npm run test:ui
-
-# Run tests with coverage
-npm run test:coverage
-
-# Build for production
-npm run build
 ```
 
 ### Commands
 
-- `npm run dev` - Watch mode compilation with esbuild
-- `npm run build` - Production build with TypeScript checking
-- `npm test` - Run all tests with Vitest
-- `npm run test:ui` - Interactive test UI dashboard
-- `npm run test:coverage` - Generate coverage report
-- `npm run version` - Bump version and update manifest/versions.json
-
-### Testing
-
-Run specific tests:
 ```bash
-# Single test file
-npx vitest test/ImagePreview.test.ts
+npm run dev          # Watch mode (esbuild)
+npm run build        # Production build with TypeScript check
+npm test             # Run all tests (Vitest)
+npm run test:ui      # Interactive test UI
+npm run test:coverage  # Coverage report
+```
 
-# Single test case
-npx vitest -t "should initialize"
+### Releasing
 
-# Watch mode
-npx vitest --watch
+```bash
+bash bump.sh <version>   # Bumps version, builds, commits, tags, pushes, creates GitHub release
 ```
 
 ### Code Style
 
-- **Indentation**: Tabs (width 4)
-- **Quotes**: Double quotes
-- **Semicolons**: Required
-- **Imports**: Obsidian imports first, then blank line, then local imports with path aliases
-- **Path Aliases**: Use `Services/` and `UI/` instead of relative paths
+- Indentation: tabs (width 4)
+- Quotes: double
+- Semicolons: required
+- Obsidian imports first, then a blank line, then local imports using path aliases (`Services/`, `UI/`)
 
-Example:
-```typescript
-import { App, Modal, Notice } from "obsidian";
-
-import { uploadImageToCanvas } from "Services/ImageUpload";
-import { ImagePreview } from "UI/Components/ImagePreview";
-```
-
-## Changelog
-
-### Version 1.0.0 (Current)
-
-**Features:**
-- Initial release
-- Image upload and camera capture
-- Perspective correction with interactive crop points
-- Image rotation (90° increments)
-- Advanced filters (brightness, contrast, saturation, B&W)
-- Background removal with tolerance adjustment
-- PNG/SVG export with transparency support
-- Checkerboard pattern for transparent areas
-- Configurable export folder
-- Touch and mouse support
-- HiDPI display support
-
-**Bug Fixes:**
-- Fixed transparent background export (removed black background fill)
-- Fixed background removal cropping issue (DPR dimension mismatch)
-- Fixed checkerboard contamination in background removal
-
-## Contributing
-
-Contributions are welcome! Please follow these guidelines:
-
-1. **Fork the repository**
-2. **Create a feature branch**: `git checkout -b feature/amazing-feature`
-3. **Follow code style**: Use tabs, double quotes, proper imports
-4. **Write tests**: Add tests for new features
-5. **Run tests**: `npm test` (all tests must pass)
-6. **Build**: `npm run build` (must build without errors)
-7. **Commit**: Use clear, descriptive commit messages
-8. **Push**: `git push origin feature/amazing-feature`
-9. **Open a Pull Request**
-
-## License
-
-This project is licensed under the OBSD License - see the LICENSE file for details.
+---
 
 ## Support
 
-- **Issues**: Report bugs on [GitHub Issues](https://github.com/yourusername/obsidian-simple-scanner2/issues)
-- **Discussions**: Ask questions in [GitHub Discussions](https://github.com/yourusername/obsidian-simple-scanner2/discussions)
-- **Documentation**: See [Obsidian Plugin Guidelines](https://docs.obsidian.md/Plugins)
+- Bug reports: [GitHub Issues](https://github.com/jzstoller/jzs-new-scanner/issues)
+- Questions: [GitHub Discussions](https://github.com/jzstoller/jzs-new-scanner/discussions)
+- Obsidian plugin docs: [docs.obsidian.md](https://docs.obsidian.md/Plugins)
+
+---
+
+## License
+
+OBSD License — see the LICENSE file for details.
+
+---
 
 ## Acknowledgments
 
-- Built with [Obsidian API](https://github.com/obsidianmd/obsidian-api)
-- Uses [perspective-transform](https://github.com/jlouthan/perspective-transform) for perspective correction
-- Optional notebook theme CSS snippets available from [Obsidian-Notebook-Themes](https://github.com/CyanVoxel/Obsidian-Notebook-Themes) by [@CyanVoxel](https://github.com/CyanVoxel) (v2.2.3)
-- Inspired by document scanning apps and the Obsidian community
-
----
+- Built with the [Obsidian API](https://github.com/obsidianmd/obsidian-api)
+- Perspective correction via [perspective-transform](https://github.com/jlouthan/perspective-transform) by [@jlouthan](https://github.com/jlouthan)
+- Optional notebook theme CSS snippets from [Obsidian-Notebook-Themes](https://github.com/CyanVoxel/Obsidian-Notebook-Themes) by [@CyanVoxel](https://github.com/CyanVoxel) (v2.2.3)
