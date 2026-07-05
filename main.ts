@@ -45,8 +45,8 @@ export default class ScannerPlugin extends Plugin {
 		this.addRibbonIcon("scan", "Simple Scanner2", openWithFilePicker);
 
 		this.addCommand({
-			id: "open-handwritten-scanner",
-			name: "Open handwritten scanner",
+			id: "open-scanner2",
+			name: "Open scanner",
 			icon: "scan",
 			callback: openWithFilePicker,
 		});

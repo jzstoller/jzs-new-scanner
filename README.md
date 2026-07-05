@@ -39,7 +39,7 @@ An Obsidian plugin for scanning and processing documents. Transform documents wi
 ### From Obsidian Community Plugins (Coming Soon)
 1. Open Obsidian Settings
 2. Navigate to Community Plugins
-3. Search for "Handwritten Scanner"
+3. Search for "Simple Scanner2"
 4. Click Install
 5. Enable the plugin
 
@@ -69,7 +69,7 @@ BRAT will automatically keep the plugin updated with the latest releases.
 **⚠️ Warning:** Manual installation can cause crashes on mobile devices. Use BRAT instead if you use Obsidian on mobile.
 
 1. Download the latest release from GitHub
-2. Extract files to `VaultFolder/.obsidian/plugins/jzs-handwritten-scanner/`
+2. Extract files to `VaultFolder/.obsidian/plugins/simple-scanner2/`
 3. Reload Obsidian
 4. Enable plugin in Settings → Community Plugins
 
@@ -148,7 +148,7 @@ This applies a manila (tan) page background with black pen styling and recolors 
 ### Project Structure
 
 ```
-obsidian-handwritten-scanner/
+obsidian-simple-scanner2/
 ├── main.ts                 # Plugin entry point
 ├── Services/              # Business logic & utilities
 │   ├── CanvasRenderer.ts       # Canvas drawing utilities
@@ -200,7 +200,7 @@ obsidian-handwritten-scanner/
 ### Setup
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/obsidian-handwritten-scanner.git
+git clone https://github.com/yourusername/obsidian-simple-scanner2.git
 
 # Install dependencies
 npm install
@@ -302,8 +302,8 @@ This project is licensed under the OBSD License - see the LICENSE file for detai
 
 ## Support
 
-- **Issues**: Report bugs on [GitHub Issues](https://github.com/yourusername/obsidian-handwritten-scanner/issues)
-- **Discussions**: Ask questions in [GitHub Discussions](https://github.com/yourusername/obsidian-handwritten-scanner/discussions)
+- **Issues**: Report bugs on [GitHub Issues](https://github.com/yourusername/obsidian-simple-scanner2/issues)
+- **Discussions**: Ask questions in [GitHub Discussions](https://github.com/yourusername/obsidian-simple-scanner2/discussions)
 - **Documentation**: See [Obsidian Plugin Guidelines](https://docs.obsidian.md/Plugins)
 
 ## Acknowledgments
