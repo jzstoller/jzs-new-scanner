@@ -67,19 +67,8 @@ export function performPerspectiveCrop(
 		];
 
 		// Create perspective transform
-		const srcPointsArr: number[][] = [
-			[srcPoints[0], srcPoints[1]],
-			[srcPoints[2], srcPoints[3]],
-			[srcPoints[4], srcPoints[5]],
-			[srcPoints[6], srcPoints[7]],
-		];
-		const dstPointsArr: number[][] = [
-			[dstPoints[0], dstPoints[1]],
-			[dstPoints[2], dstPoints[3]],
-			[dstPoints[4], dstPoints[5]],
-			[dstPoints[6], dstPoints[7]],
-		];
-		const perspT = PerspT(srcPointsArr, dstPointsArr);
+		// Library expects flat arrays of 8 numbers: [x0,y0, x1,y1, x2,y2, x3,y3]
+		const perspT = PerspT(srcPoints, dstPoints);
 
 		// Create output image data
 		const outputImageData = new ImageData(dimensions.width, dimensions.height);
