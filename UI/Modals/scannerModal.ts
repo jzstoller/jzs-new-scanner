@@ -7,6 +7,7 @@ import type ScannerPlugin from "../../main";
 
 export class ScannerModal extends Modal {
 	private plugin: ScannerPlugin;
+	private initialFile: File | null;
 	private container: HTMLElement;
 	private buttonWrapper: HTMLElement;
 	private confirmButtonWrapper: HTMLElement;
@@ -20,9 +21,10 @@ export class ScannerModal extends Modal {
 	private processingNotice: Notice | null;
 	private exportControls: ExportControls;
 
-	constructor(app: App, plugin: ScannerPlugin) {
+	constructor(app: App, plugin: ScannerPlugin, initialFile: File | null = null) {
 		super(app);
 		this.plugin = plugin;
+		this.initialFile = initialFile;
 		this.setTitle("Scan image");
 		this.modalEl.addClass("scanner-modal");
 
@@ -70,6 +72,10 @@ export class ScannerModal extends Modal {
 			.setIcon("crop")
 			.setTooltip("Crop image")
 			.onClick(() => this.toggleCropMode());
+
+		if (this.initialFile) {
+			this.canvas.darawImage(this.initialFile, () => this.detectAndShowCorners());
+		}
 
 		// Initialize export controls
 		this.exportControls = new ExportControls(

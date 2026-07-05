@@ -29,19 +29,26 @@ export default class ScannerPlugin extends Plugin {
 	async onload() {
 		await this.loadSettings();
 
-		this.addRibbonIcon("scan", "Simple Scanner2", async (_evt: MouseEvent) => {
+		const openWithFilePicker = async () => {
 			const { ScannerModal } = await import("./UI/Modals/scannerModal");
-			new ScannerModal(this.app, this).open();
-		});
+			const input = document.createElement("input");
+			input.type = "file";
+			input.accept = "image/*";
+			input.onchange = () => {
+				const file = input.files?.[0];
+				new ScannerModal(this.app, this, file ?? null).open();
+				input.value = "";
+			};
+			input.click();
+		};
+
+		this.addRibbonIcon("scan", "Simple Scanner2", openWithFilePicker);
 
 		this.addCommand({
 			id: "open-handwritten-scanner",
 			name: "Open handwritten scanner",
 			icon: "scan",
-			callback: async () => {
-				const { ScannerModal } = await import("./UI/Modals/scannerModal");
-				new ScannerModal(this.app, this).open();
-			},
+			callback: openWithFilePicker,
 		});
 
 		this.addSettingTab(new ScannerSettingTab(this.app, this));
