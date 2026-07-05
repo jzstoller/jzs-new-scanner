@@ -124,31 +124,27 @@ export class ImagePreview {
 	 * @param event - Mouse or Touch event
 	 * @returns Position {x, y} relative to canvas, or null if invalid
 	 */
-	private getPointerPosition(event: MouseEvent | TouchEvent): { x: number; y: number } | null {
+	private getPointerPositionFromMouse(event: MouseEvent): { x: number; y: number } {
 		const rect = this.canvas.getBoundingClientRect();
-
-		// Get computed border width (canvas has 5px border in CSS)
 		const computedStyle = window.getComputedStyle(this.canvas);
 		const borderLeft = parseFloat(computedStyle.borderLeftWidth) || 0;
 		const borderTop = parseFloat(computedStyle.borderTopWidth) || 0;
+		return {
+			x: event.clientX - rect.left - borderLeft,
+			y: event.clientY - rect.top - borderTop,
+		};
+	}
 
-		let clientX: number;
-		let clientY: number;
-
-		if (event instanceof window.MouseEvent) {
-			clientX = event.clientX;
-			clientY = event.clientY;
-		} else if (event instanceof window.TouchEvent && event.touches.length > 0) {
-			clientX = event.touches[0].clientX;
-			clientY = event.touches[0].clientY;
-		} else {
-			return null;
-		}
-
-		const x = clientX - rect.left - borderLeft;
-		const y = clientY - rect.top - borderTop;
-
-		return { x, y };
+	private getPointerPositionFromTouch(event: TouchEvent): { x: number; y: number } | null {
+		if (event.touches.length === 0) return null;
+		const rect = this.canvas.getBoundingClientRect();
+		const computedStyle = window.getComputedStyle(this.canvas);
+		const borderLeft = parseFloat(computedStyle.borderLeftWidth) || 0;
+		const borderTop = parseFloat(computedStyle.borderTopWidth) || 0;
+		return {
+			x: event.touches[0].clientX - rect.left - borderLeft,
+			y: event.touches[0].clientY - rect.top - borderTop,
+		};
 	}
 
 	private onMouseDown(event: MouseEvent) {
@@ -156,8 +152,7 @@ export class ImagePreview {
 			return;
 		}
 
-		const pos = this.getPointerPosition(event);
-		if (!pos) return;
+		const pos = this.getPointerPositionFromMouse(event);
 
 		// Find which crop point (if any) was clicked (20px hit area)
 		const clickedIndex = findCropPointAtPosition(pos.x, pos.y, this.cropPoints, 20);
@@ -175,8 +170,7 @@ export class ImagePreview {
 			return;
 		}
 
-		const pos = this.getPointerPosition(event);
-		if (!pos) return;
+		const pos = this.getPointerPositionFromMouse(event);
 
 		// Update the dragged crop point's position
 		this.cropPoints = updateCropPoint(this.cropPoints, this.draggedPointIndex, pos.x, pos.y);
@@ -211,7 +205,7 @@ export class ImagePreview {
 
 		event.preventDefault();
 
-		const pos = this.getPointerPosition(event);
+		const pos = this.getPointerPositionFromTouch(event);
 		if (!pos) return;
 
 		// Find which crop point (if any) was touched (30px hit area for touch)
@@ -232,7 +226,7 @@ export class ImagePreview {
 
 		event.preventDefault();
 
-		const pos = this.getPointerPosition(event);
+		const pos = this.getPointerPositionFromTouch(event);
 		if (!pos) return;
 
 		// Update the dragged crop point's position

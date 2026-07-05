@@ -83,7 +83,7 @@ export class ExportControls {
 				});
 
 			const filename = generateDefaultFilename() + "." + result.ext;
-			const blob = new Blob([result.buffer], { type: `image/${result.ext === "jpg" ? "jpeg" : result.ext}` });
+			const blob = new Blob([result.buffer], { type: requestedMime });
 			const file = await saveToVault(this.app.vault, exportDefaultFolder, filename, blob);
 
 			processingNotice.hide();
@@ -92,7 +92,8 @@ export class ExportControls {
 
 		} catch (error) {
 			processingNotice.hide();
-			new Notice(error.message, 5000);
+			const message = error instanceof Error ? error.message : String(error);
+			new Notice(message, 5000);
 		}
 	}
 
