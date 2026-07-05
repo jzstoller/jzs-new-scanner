@@ -159,10 +159,15 @@ export function orderCropPoints(points: CropPoint[]): CropPoint[] {
 	
 	// Top-right has smaller y (or larger x if y is similar)
 	// Bottom-left has larger y (or smaller x if y is similar)
+	const span = Math.max(
+		Math.abs(remaining[0].x - remaining[1].x),
+		Math.abs(remaining[0].y - remaining[1].y),
+	);
+	const threshold = span * 0.1;
 	remaining.sort((a, b) => {
 		const diffY = a.y - b.y;
-		if (Math.abs(diffY) > 10) return diffY; // Use y if significantly different
-		return b.x - a.x; // Otherwise use x (descending)
+		if (Math.abs(diffY) > threshold) return diffY;
+		return b.x - a.x;
 	});
 
 	const topRight = remaining[0];

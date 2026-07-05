@@ -65,7 +65,7 @@ export function validateFilename(
  * Remove alpha channel by drawing onto an opaque RGB canvas
  */
 export function stripAlphaChannel(canvas: HTMLCanvasElement): HTMLCanvasElement {
-	const rgbCanvas = document.createElement("canvas");
+	const rgbCanvas = activeDocument.createElement("canvas");
 	rgbCanvas.width = canvas.width;
 	rgbCanvas.height = canvas.height;
 
@@ -92,7 +92,7 @@ export function resizeCanvas(
 	if (longEdge <= targetLongEdge) return canvas;
 
 	const scale = targetLongEdge / longEdge;
-	const out = document.createElement("canvas");
+	const out = activeDocument.createElement("canvas");
 	out.width = Math.round(width * scale);
 	out.height = Math.round(height * scale);
 	out.getContext("2d")!.drawImage(canvas, 0, 0, out.width, out.height);
@@ -159,7 +159,7 @@ export function tintCanvasImage(
 	canvas: HTMLCanvasElement,
 	tintColor: string,
 ): HTMLCanvasElement {
-	const tempCanvas = document.createElement("canvas");
+	const tempCanvas = activeDocument.createElement("canvas");
 	tempCanvas.width = canvas.width;
 	tempCanvas.height = canvas.height;
 

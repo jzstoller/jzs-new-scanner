@@ -101,7 +101,7 @@ export class ImagePreview {
 		this.setupInputEvents();
 
 		// Wait for next frame to ensure parent has dimensions
-		requestAnimationFrame(() => {
+		window.requestAnimationFrame(() => {
 			this.resize();
 			this.initializePlaceholder();
 		});
@@ -135,10 +135,10 @@ export class ImagePreview {
 		let clientX: number;
 		let clientY: number;
 
-		if (event instanceof MouseEvent) {
+		if (event instanceof window.MouseEvent) {
 			clientX = event.clientX;
 			clientY = event.clientY;
-		} else if (event instanceof TouchEvent && event.touches.length > 0) {
+		} else if (event instanceof window.TouchEvent && event.touches.length > 0) {
 			clientX = event.touches[0].clientX;
 			clientY = event.touches[0].clientY;
 		} else {
@@ -346,7 +346,7 @@ export class ImagePreview {
 		}
 
 		const dimensions = this.getSourceDimensions();
-		const workingCanvas = document.createElement("canvas");
+		const workingCanvas = activeDocument.createElement("canvas");
 		workingCanvas.width = dimensions.width;
 		workingCanvas.height = dimensions.height;
 
@@ -391,7 +391,7 @@ export class ImagePreview {
 				this.resizeToImage(this.img.naturalWidth, this.img.naturalHeight);
 
 				// Wait for layout flush so canvas CSS dimensions are readable
-				requestAnimationFrame(() => {
+				window.requestAnimationFrame(() => {
 					const cssWidth = parseInt(this.canvas.style.width);
 					const cssHeight = parseInt(this.canvas.style.height);
 
@@ -690,7 +690,7 @@ export class ImagePreview {
 			}
 		}
 
-		const exportCanvas = document.createElement("canvas");
+		const exportCanvas = activeDocument.createElement("canvas");
 		exportCanvas.width = exportWidth;
 		exportCanvas.height = exportHeight;
 		const exportCtx = exportCanvas.getContext("2d", { willReadFrequently: true });

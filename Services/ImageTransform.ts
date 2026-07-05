@@ -32,8 +32,8 @@ export function performPerspectiveCrop(
 		// Get ordered crop points (TL, TR, BL, BR)
 		const orderedPoints = orderCropPoints(cropPoints);
 
-		// Calculate output dimensions
-		const dimensions = calculateOutputDimensions(cropPoints, dpr);
+		// Calculate output dimensions using ordered points
+		const dimensions = calculateOutputDimensions(orderedPoints, dpr);
 
 		// Validate dimensions
 		if (dimensions.width < 50 || dimensions.height < 50) {
@@ -73,7 +73,6 @@ export function performPerspectiveCrop(
 			[srcPoints[4], srcPoints[5]],
 			[srcPoints[6], srcPoints[7]],
 		];
-
 		const dstPointsArr: number[][] = [
 			[dstPoints[0], dstPoints[1]],
 			[dstPoints[2], dstPoints[3]],
@@ -88,12 +87,9 @@ export function performPerspectiveCrop(
 		// Apply perspective transformation pixel by pixel
 		for (let y = 0; y < dimensions.height; y++) {
 			for (let x = 0; x < dimensions.width; x++) {
-				// Transform destination coordinates to source coordinates
 				const srcCoords = perspT.transformInverse(x, y);
-
-				// Scale coordinates by DPR to match the actual canvas dimensions
-				const srcX = Math.round(srcCoords[0] * dpr);
-				const srcY = Math.round(srcCoords[1] * dpr);
+				const srcX = Math.round(srcCoords[0]);
+				const srcY = Math.round(srcCoords[1]);
 
 				// Check if source coordinates are within bounds
 				if (srcX >= 0 && srcX < sourceWidth && srcY >= 0 && srcY < sourceHeight) {
@@ -144,7 +140,7 @@ export function createImageFromImageData(
 ): Promise<HTMLImageElement> {
 	return new Promise((resolve, reject) => {
 		// Create temporary canvas matching ImageData dimensions (handles DPR correctly)
-		const tempCanvas = document.createElement("canvas");
+		const tempCanvas = activeDocument.createElement("canvas");
 		tempCanvas.width = width ?? imageData.width;
 		tempCanvas.height = height ?? imageData.height;
 		const tempCtx = tempCanvas.getContext("2d", { willReadFrequently: true });

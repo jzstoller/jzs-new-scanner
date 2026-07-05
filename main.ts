@@ -31,7 +31,7 @@ export default class ScannerPlugin extends Plugin {
 
 		const openWithFilePicker = async () => {
 			const { ScannerModal } = await import("./UI/Modals/scannerModal");
-			const input = document.createElement("input");
+			const input = activeDocument.createElement("input");
 			input.type = "file";
 			input.accept = "image/*";
 			input.onchange = () => {
