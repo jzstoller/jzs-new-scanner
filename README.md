@@ -1,4 +1,4 @@
-# JZS Simple Scanner2
+# Simple Scanner2
 
 An Obsidian plugin for scanning and processing documents. Transform documents with automatic perspective correction.
 
@@ -60,7 +60,7 @@ An Obsidian plugin for scanning and processing documents. Transform documents wi
 
 3. Enable the plugin:
    - Go to Settings → Community Plugins
-   - Find "JZS Handwritten Scanner" and enable it
+   - Find "Simple Scanner2" and enable it
 
 BRAT will automatically keep the plugin updated with the latest releases.
 
@@ -103,7 +103,7 @@ BRAT will automatically keep the plugin updated with the latest releases.
 
 ## Settings
 
-Access plugin settings via Settings → JZS Simple Scanner2:
+Access plugin settings via Settings → Simple Scanner2:
 
 - **Export Default Folder**: Set the default folder for saving scanned images (default: root)
 

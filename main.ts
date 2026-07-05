@@ -1,7 +1,7 @@
 import { App, Plugin, PluginSettingTab, Setting } from "obsidian";
 import type { ExportFormat } from "./Services/ImageExport";
 
-interface HandwrittenScannerSettings {
+interface ScannerSettings {
 	exportDefaultFolder: string;
 	exportDefaultFormat: ExportFormat;
 	closeAfterExport: boolean;
@@ -12,7 +12,7 @@ interface HandwrittenScannerSettings {
 	exportQuality: number;
 }
 
-const DEFAULT_SETTINGS: HandwrittenScannerSettings = {
+const DEFAULT_SETTINGS: ScannerSettings = {
 	exportDefaultFolder: "Scanned",
 	exportDefaultFormat: "png",
 	closeAfterExport: true,
@@ -23,13 +23,13 @@ const DEFAULT_SETTINGS: HandwrittenScannerSettings = {
 	exportQuality: 0.92,
 };
 
-export default class HandWrittenPlugin extends Plugin {
-	settings: HandwrittenScannerSettings;
+export default class ScannerPlugin extends Plugin {
+	settings: ScannerSettings;
 
 	async onload() {
 		await this.loadSettings();
 
-		this.addRibbonIcon("scan", "JZS Handwritten Scanner", async (_evt: MouseEvent) => {
+		this.addRibbonIcon("scan", "Simple Scanner2", async (_evt: MouseEvent) => {
 			const { ScannerModal } = await import("./UI/Modals/scannerModal");
 			new ScannerModal(this.app, this).open();
 		});
@@ -44,7 +44,7 @@ export default class HandWrittenPlugin extends Plugin {
 			},
 		});
 
-		this.addSettingTab(new HandwrittenScannerSettingTab(this.app, this));
+		this.addSettingTab(new ScannerSettingTab(this.app, this));
 	}
 
 	onunload() {}
@@ -62,10 +62,10 @@ export default class HandWrittenPlugin extends Plugin {
 	}
 }
 
-class HandwrittenScannerSettingTab extends PluginSettingTab {
-	plugin: HandWrittenPlugin;
+class ScannerSettingTab extends PluginSettingTab {
+	plugin: ScannerPlugin;
 
-	constructor(app: App, plugin: HandWrittenPlugin) {
+	constructor(app: App, plugin: ScannerPlugin) {
 		super(app, plugin);
 		this.plugin = plugin;
 	}

@@ -6,19 +6,19 @@ import {
 } from "Services/ImageExport";
 import { compressCanvas, mimeToExt } from "Services/ImageCompress";
 import { saveToVault } from "Services/VaultExport";
-import type HandWrittenPlugin from "../../main";
+import type ScannerPlugin from "../../main";
 
 export class ExportControls {
 	private app: App;
 	private getCanvas: (targetLongEdge?: number) => HTMLCanvasElement;
-	private plugin: HandWrittenPlugin;
+	private plugin: ScannerPlugin;
 	private isImageLoaded: () => boolean;
 	private onExportComplete?: () => void;
 
 	constructor(
 		app: App,
 		getCanvas: (targetLongEdge?: number) => HTMLCanvasElement,
-		plugin: HandWrittenPlugin,
+		plugin: ScannerPlugin,
 		isImageLoaded: () => boolean,
 		onExportComplete?: () => void,
 	) {

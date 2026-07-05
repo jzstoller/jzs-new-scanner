@@ -3,10 +3,10 @@ import { uploadImageToCanvas } from "Services/ImageUpload";
 import { detectPageCorners } from "Services/PageDetection";
 import { ImagePreview } from "UI/Components/ImagePreview";
 import { ExportControls } from "UI/Components/ExportControls";
-import type HandWrittenPlugin from "../../main";
+import type ScannerPlugin from "../../main";
 
 export class ScannerModal extends Modal {
-	private plugin: HandWrittenPlugin;
+	private plugin: ScannerPlugin;
 	private container: HTMLElement;
 	private buttonWrapper: HTMLElement;
 	private confirmButtonWrapper: HTMLElement;
@@ -20,7 +20,7 @@ export class ScannerModal extends Modal {
 	private processingNotice: Notice | null;
 	private exportControls: ExportControls;
 
-	constructor(app: App, plugin: HandWrittenPlugin) {
+	constructor(app: App, plugin: ScannerPlugin) {
 		super(app);
 		this.plugin = plugin;
 		this.setTitle("Scan image");

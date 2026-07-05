@@ -78,7 +78,7 @@ export class ImagePreview {
 
 		this.placeholderConfig = {
 			primaryText: "Upload or take a picture",
-			// secondaryText: "to process your handwritten note",
+			// secondaryText: "to process your note",
 			backgroundColor: "#f5f5f5",
 			iconColor: "#888888",
 			textColor: "#888888",
