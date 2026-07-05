@@ -115,7 +115,7 @@ export class ScannerModal extends Modal {
 		}
 
 		const imageData = ctx.getImageData(0, 0, previewCanvas.width, previewCanvas.height);
-		const dpr = window.devicePixelRatio || 1;
+		// const dpr = window.devicePixelRatio || 1;
 
 		new Notice("Detecting page corners...", 2000);
 

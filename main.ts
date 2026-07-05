@@ -60,7 +60,7 @@ export default class ScannerPlugin extends Plugin {
 		this.settings = Object.assign(
 			{},
 			DEFAULT_SETTINGS,
-			await this.loadData(),
+			(await this.loadData() as Partial<ScannerSettings> | null) ?? {},
 		);
 	}
 
@@ -153,7 +153,6 @@ class ScannerSettingTab extends PluginSettingTab {
 				slider
 					.setLimits(0.1, 1.0, 0.05)
 					.setValue(this.plugin.settings.exportQuality)
-					.setDynamicTooltip()
 					.onChange(async (value) => {
 						this.plugin.settings.exportQuality = value;
 						await this.plugin.saveSettings();

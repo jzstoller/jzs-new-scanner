@@ -363,7 +363,7 @@ export class ImagePreview {
 	private initializePlaceholder() {
 		const cssWidth = parseInt(this.canvas.style.width);
 		const cssHeight = parseInt(this.canvas.style.height);
-		const dpr = window.devicePixelRatio || 1;
+		// const dpr = window.devicePixelRatio || 1;
 
 		renderPlaceholder(this.ctx, cssWidth, cssHeight, this.placeholderConfig);
 	}

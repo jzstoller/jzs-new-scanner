@@ -4,7 +4,7 @@ import {
 	exportCanvasToSVG,
 	getFileExtension,
 } from "Services/ImageExport";
-import { compressCanvas, mimeToExt } from "Services/ImageCompress";
+import { compressCanvas } from "Services/ImageCompress";
 import { saveToVault } from "Services/VaultExport";
 import type ScannerPlugin from "../../main";
 
