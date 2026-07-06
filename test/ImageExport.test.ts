@@ -231,7 +231,8 @@ describe("ImageExport", () => {
 			canvas = document.createElement("canvas");
 			canvas.width = 100;
 			canvas.height = 100;
-			const ctx = canvas.getContext("2d", { willReadFrequently: true })!;
+			const ctx = canvas.getContext("2d", { willReadFrequently: true });
+			if (!ctx) return;
 			ctx.fillStyle = "black";
 			ctx.fillRect(0, 0, 100, 100);
 		});

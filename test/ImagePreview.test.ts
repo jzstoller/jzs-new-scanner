@@ -1,11 +1,12 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
 import { ImagePreview } from "../UI/Components/ImagePreview";
+import type { MockCtx } from "./setup";
 
 describe("ImagePreview", () => {
 	let parent: HTMLElement;
 	let canvas: HTMLCanvasElement;
 	let imagePreview: ImagePreview;
-	let mockCtx: any;
+	let mockCtx: MockCtx;
 
 	beforeEach(() => {
 		vi.useFakeTimers();
@@ -17,7 +18,7 @@ describe("ImagePreview", () => {
 		document.body.appendChild(parent);
 
 		canvas = document.createElement("canvas");
-		mockCtx = canvas.getContext("2d", { willReadFrequently: true });
+		mockCtx = canvas.getContext("2d", { willReadFrequently: true }) as unknown as MockCtx;
 
 		imagePreview = new ImagePreview(parent, canvas, 4 / 3);
 	});
