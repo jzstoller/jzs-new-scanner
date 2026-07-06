@@ -133,10 +133,11 @@ export function performPerspectiveCrop(
 			dimensions,
 		};
 	} catch (error) {
+		const message = error instanceof Error ? error.message : String(error);
 		console.error("Error during perspective crop:", error);
 		return {
 			success: false,
-			message: `Crop failed: ${error.message}`,
+			message: `Crop failed: ${message}`,
 		};
 	}
 }

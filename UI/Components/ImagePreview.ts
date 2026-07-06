@@ -34,23 +34,23 @@ import {
 export class ImagePreview {
 	private parent: HTMLElement;
 	private canvas: HTMLCanvasElement;
-	private ctx: CanvasRenderingContext2D;
+	private ctx!: CanvasRenderingContext2D;
 	private ratio: number;
-	private img: HTMLImageElement;
+	private img!: HTMLImageElement;
 
 	// Store image position and dimensions for future reference
-	private imgX: number;
-	private imgY: number;
-	private imgWidth: number;
-	private imgHeight: number;
+	private imgX!: number;
+	private imgY!: number;
+	private imgWidth!: number;
+	private imgHeight!: number;
 
 	// for continuous rotation
-	private toRotateDegree: number;
+	private toRotateDegree!: number;
 
 	// for cropping points
-	private croppingPointsVisible: boolean;
-	private cropPoints: CropPoint[];
-	private draggedPointIndex: number;
+	private croppingPointsVisible!: boolean;
+	private cropPoints!: CropPoint[];
+	private draggedPointIndex!: number;
 
 	// Configuration
 	private magnifierConfig: MagnifierConfig;

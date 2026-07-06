@@ -30,7 +30,7 @@ const DEFAULT_SETTINGS: ScannerSettings = {
 };
 
 export default class ScannerPlugin extends Plugin {
-	settings: ScannerSettings;
+	settings!: ScannerSettings;
 
 	async onload() {
 		await this.loadSettings();
@@ -113,8 +113,9 @@ class ScannerSettingTab extends PluginSettingTab {
 					.addOption("jpg", "JPG")
 					.addOption("svg", "SVG")
 					.setValue(this.plugin.settings.exportDefaultFormat)
-					.onChange(async (value: ExportFormat) => {
-						this.plugin.settings.exportDefaultFormat = value;
+					.onChange(async (value: string) => {
+						this.plugin.settings.exportDefaultFormat =
+							value as ExportFormat;
 						await this.plugin.saveSettings();
 					}),
 			);

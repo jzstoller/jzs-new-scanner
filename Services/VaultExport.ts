@@ -3,7 +3,7 @@
  * Handles folder creation, file saving, and path validation
  */
 
-import { Vault, TFile, TFolder } from "obsidian";
+import { TFile, TFolder, Vault } from "obsidian";
 import { blobToArrayBuffer } from "./ImageExport";
 
 /**
@@ -56,11 +56,12 @@ export async function ensureExportFolder(
 	try {
 		await vault.createFolder(normalizedPath);
 	} catch (error) {
+		const message = error instanceof Error ? error.message : String(error);
 		// Folder might already exist (race condition), check again
 		const folder = vault.getAbstractFileByPath(normalizedPath);
 		if (!(folder instanceof TFolder)) {
 			throw new Error(
-				`Failed to create folder '${normalizedPath}': ${error.message}`,
+				`Failed to create folder '${normalizedPath}': ${message}`,
 			);
 		}
 	}
@@ -116,6 +117,7 @@ export async function saveToVault(
 		const file = await vault.createBinary(fullPath, arrayBuffer);
 		return file;
 	} catch (error) {
-		throw new Error(`Failed to save file: ${error.message}`);
+		const message = error instanceof Error ? error.message : String(error);
+		throw new Error(`Failed to save file: ${message}`);
 	}
 }

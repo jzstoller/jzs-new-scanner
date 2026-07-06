@@ -18,14 +18,14 @@ export class ScannerModal extends Modal {
 	private buttonWrapper: HTMLElement;
 	private confirmButtonWrapper: HTMLElement;
 	private canvas: ImagePreview;
-	private btnPhotoUpload: ButtonComponent;
-	private btnDetectCorners: ButtonComponent;
-	private btnCrop: ButtonComponent;
-	private btnExport: ButtonComponent;
-	private btnConfirm: ButtonComponent;
-	private btnCancel: ButtonComponent;
+	private btnPhotoUpload!: ButtonComponent;
+	private btnDetectCorners!: ButtonComponent;
+	private btnCrop!: ButtonComponent;
+	private btnExport!: ButtonComponent;
+	private btnConfirm!: ButtonComponent;
+	private btnCancel!: ButtonComponent;
 	private processingNotice: Notice | null;
-	private exportControls: ExportControls;
+	private exportControls!: ExportControls;
 
 	constructor(
 		app: App,
@@ -57,7 +57,9 @@ export class ScannerModal extends Modal {
 		try {
 			this.canvas.setup();
 		} catch (error) {
-			console.error(`Error: ${error.message}`);
+			const message =
+				error instanceof Error ? error.message : String(error);
+			console.error(`Error: ${message}`);
 			new Notice(
 				"Cannot create image preview canvas, please review details in console",
 			);
@@ -227,6 +229,8 @@ export class ScannerModal extends Modal {
 				this.setButtonsEnabled(true);
 			}
 		} catch (error) {
+			const message =
+				error instanceof Error ? error.message : String(error);
 			// Hide processing notice if it's still showing
 			if (this.processingNotice) {
 				this.processingNotice.hide();
@@ -238,7 +242,7 @@ export class ScannerModal extends Modal {
 
 			// Show user-friendly error message
 			new Notice(
-				`Crop failed: ${error.message || "Unknown error"}\nCheck console for details.`,
+				`Crop failed: ${message || "Unknown error"}\nCheck console for details.`,
 				6000,
 			);
 

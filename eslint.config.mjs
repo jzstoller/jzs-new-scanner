@@ -1,8 +1,11 @@
-import obsidianmd from "eslint-plugin-obsidianmd";
 import tseslint from "@typescript-eslint/eslint-plugin";
 import tsparser from "@typescript-eslint/parser";
+import obsidianmd from "eslint-plugin-obsidianmd";
 
 export default [
+	{
+		ignores: ["node_modules/", "main.js"],
+	},
 	{
 		files: ["**/*.ts"],
 		languageOptions: {
@@ -23,7 +26,7 @@ export default [
 			...tseslint.configs["recommended"].rules,
 			...obsidianmd.configs.recommended.rules,
 			"no-unused-vars": "off",
-			"@typescript-eslint/no-unused-vars": ["error", { "args": "none" }],
+			"@typescript-eslint/no-unused-vars": ["error", { args: "none" }],
 			"@typescript-eslint/ban-ts-comment": "off",
 			"no-prototype-builtins": "off",
 			"@typescript-eslint/no-empty-function": "off",
