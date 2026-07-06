@@ -18,7 +18,7 @@ export function performPerspectiveCrop(
 	sourceWidth: number,
 	sourceHeight: number,
 	cropPoints: CropPoint[],
-	dpr: number = 1,
+	dpr = 1,
 ): OperationResult & { imageData?: ImageData; dimensions?: ImageDimensions } {
 	try {
 		// Validate crop points exist
@@ -168,7 +168,7 @@ export function drawImageWithRotation(
 	image: HTMLImageElement,
 	canvasWidth: number,
 	canvasHeight: number,
-	rotation: number = 0,
+	rotation = 0,
 ): void {
 	// Note: Canvas should already have background (e.g., checkerboard) drawn by caller
 	// Do not clear here to preserve the background pattern for transparency visibility

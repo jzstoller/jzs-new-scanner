@@ -44,9 +44,9 @@ export function fillCanvasWithCheckerboard(
 	ctx: CanvasRenderingContext2D,
 	width: number,
 	height: number,
-	squareSize: number = 10,
-	color1: string = "#e0e0e0",
-	color2: string = "#ffffff",
+	squareSize = 10,
+	color1 = "#e0e0e0",
+	color2 = "#ffffff",
 ): void {
 	// Clear canvas first
 	ctx.clearRect(0, 0, width, height);

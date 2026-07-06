@@ -104,7 +104,7 @@ export function calculateDistance(
  */
 export function calculateOutputDimensions(
 	points: CropPoint[],
-	dpr: number = 1,
+	dpr = 1,
 ): ImageDimensions {
 	if (points.length !== 4) {
 		throw new Error("Need exactly 4 crop points to calculate dimensions");

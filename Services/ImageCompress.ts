@@ -54,7 +54,7 @@ export async function compressCanvas(
 	ctx.imageSmoothingQuality = "high";
 	ctx.drawImage(canvas, 0, 0, outW, outH);
 
-	const requestedMime = opts.outputMime!;
+	const requestedMime = opts.outputMime ?? "image/jpeg";
 	const outBlob = await canvasToBlob(out, requestedMime, opts.quality);
 
 	const buffer = await outBlob.arrayBuffer();

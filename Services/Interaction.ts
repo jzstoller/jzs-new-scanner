@@ -58,7 +58,7 @@ export function findCropPointAtPosition(
 	mouseX: number,
 	mouseY: number,
 	cropPoints: { x: number; y: number }[],
-	radius: number = 10,
+	radius = 10,
 ): number {
 	for (let i = 0; i < cropPoints.length; i++) {
 		if (

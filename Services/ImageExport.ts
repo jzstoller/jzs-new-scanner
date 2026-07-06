@@ -23,7 +23,7 @@ function hexToRgb(hex: string): { r: number; g: number; b: number } {
  * @param prefix - Filename prefix (default: "scan")
  * @returns Filename like "scan-2026-01-12-095123"
  */
-export function generateDefaultFilename(prefix: string = "scan"): string {
+export function generateDefaultFilename(prefix = "scan"): string {
 	const now = new Date();
 	const year = now.getFullYear();
 	const month = String(now.getMonth() + 1).padStart(2, "0");
@@ -85,7 +85,7 @@ export function stripAlphaChannel(canvas: HTMLCanvasElement): HTMLCanvasElement 
  */
 export function resizeCanvas(
 	canvas: HTMLCanvasElement,
-	targetLongEdge: number = 2000,
+	targetLongEdge = 2000,
 ): HTMLCanvasElement {
 	const { width, height } = canvas;
 	const longEdge = Math.max(width, height);
@@ -95,7 +95,8 @@ export function resizeCanvas(
 	const out = activeDocument.createElement("canvas");
 	out.width = Math.round(width * scale);
 	out.height = Math.round(height * scale);
-	out.getContext("2d")!.drawImage(canvas, 0, 0, out.width, out.height);
+	const outCtx = out.getContext("2d");
+	if (outCtx) outCtx.drawImage(canvas, 0, 0, out.width, out.height);
 	return out;
 }
 
@@ -107,7 +108,7 @@ export function resizeCanvas(
  */
 export function exportCanvasToJPG(
 	canvas: HTMLCanvasElement,
-	quality: number = 0.92,
+	quality = 0.92,
 ): Promise<Blob> {
 	return new Promise((resolve, reject) => {
 		canvas.toBlob(
@@ -163,7 +164,8 @@ export function tintCanvasImage(
 	tempCanvas.width = canvas.width;
 	tempCanvas.height = canvas.height;
 
-	const ctx = tempCanvas.getContext("2d", { willReadFrequently: true })!;
+	const ctx = tempCanvas.getContext("2d", { willReadFrequently: true });
+	if (!ctx) return tempCanvas;
 	ctx.drawImage(canvas, 0, 0);
 
 	const imageData = ctx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);

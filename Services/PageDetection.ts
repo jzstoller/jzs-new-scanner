@@ -293,7 +293,8 @@ function findContours(edges: Uint8Array, width: number, height: number): Point[]
 			const stack = [idx];
 			visited[idx] = 1;
 			while (stack.length > 0) {
-				const cur = stack.pop()!;
+				const cur = stack.pop();
+				if (cur === undefined) break;
 				const cx = cur % width, cy = Math.floor(cur / width);
 				component.push({ x: cx, y: cy });
 				for (let ny = -1; ny <= 1; ny++)
