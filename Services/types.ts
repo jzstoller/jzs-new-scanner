@@ -1,3 +1,9 @@
+/*
+  Portions of this file are derived from the obsidian-scan-sketch plugin
+  by Show Wai Yan, licensed under the Zero-Clause BSD (0BSD) License.
+  See THIRD_PARTY_NOTICES/obsidian-scan-sketch/ for details.
+*/
+
 /**
  * Shared type definitions for the image processing services
  */
@@ -12,13 +18,12 @@ export interface CropPoint {
 }
 
 /**
- * JZS - a 2D point for document detection
+ * 2D point for document detection
  */
 export interface Point {
 	x: number;
 	y: number;
 }
-
 
 /**
  * Represents image dimensions
@@ -83,8 +88,8 @@ export interface PlaceholderConfig {
  * Configuration for image filters
  */
 export interface ImageFilterConfig {
-	brightness: number;      // -100 to +100
-	contrast: number;        // -100 to +100
-	saturation: number;      // -100 to +100
-	blackAndWhite: boolean;  // High-contrast B&W for documents
+	brightness: number; // -100 to +100
+	contrast: number; // -100 to +100
+	saturation: number; // -100 to +100
+	blackAndWhite: boolean; // High-contrast B&W for documents
 }

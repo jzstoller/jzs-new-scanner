@@ -1,3 +1,9 @@
+/*
+  Portions of this file are derived from the obsidian-scan-sketch plugin
+  by Show Wai Yan, licensed under the Zero-Clause BSD (0BSD) License.
+  See THIRD_PARTY_NOTICES/obsidian-scan-sketch/ for details.
+*/
+
 import { beforeEach, vi } from "vitest";
 
 // Create a shared mock context that persists across operations
@@ -65,7 +71,10 @@ beforeEach(() => {
 		arc: vi.fn(),
 		fillText: vi.fn(),
 		strokeRect: vi.fn(),
-		getImageData: vi.fn((x: number, y: number, width: number, height: number) => new ImageData(width, height)),
+		getImageData: vi.fn(
+			(x: number, y: number, width: number, height: number) =>
+				new ImageData(width, height),
+		),
 		putImageData: vi.fn(),
 	};
 
@@ -133,9 +142,9 @@ beforeEach(() => {
 				// new ImageData(data, width, height?)
 				this.data = dataOrWidth;
 				this.width = widthOrHeight;
-				this.height = height || Math.floor(dataOrWidth.length / (this.width * 4));
+				this.height =
+					height || Math.floor(dataOrWidth.length / (this.width * 4));
 			}
 		}
 	} as unknown as typeof global.ImageData;
-
 });

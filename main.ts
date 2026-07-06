@@ -1,3 +1,9 @@
+/*
+  Portions of this file are derived from the obsidian-scan-sketch plugin
+  by Show Wai Yan, licensed under the Zero-Clause BSD (0BSD) License.
+  See THIRD_PARTY_NOTICES/obsidian-scan-sketch/ for details.
+*/
+
 import { App, Plugin, PluginSettingTab, Setting } from "obsidian";
 import type { ExportFormat } from "./Services/ImageExport";
 
@@ -60,7 +66,7 @@ export default class ScannerPlugin extends Plugin {
 		this.settings = Object.assign(
 			{},
 			DEFAULT_SETTINGS,
-			(await this.loadData() as Partial<ScannerSettings> | null) ?? {},
+			((await this.loadData()) as Partial<ScannerSettings> | null) ?? {},
 		);
 	}
 
@@ -84,13 +90,16 @@ class ScannerSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName("Default export folder")
-			.setDesc("Folder path where scanned images will be saved (e.g., 'Scanned' or 'Notes/Scans')")
+			.setDesc(
+				"Folder path where scanned images will be saved (e.g., 'Scanned' or 'Notes/Scans')",
+			)
 			.addText((text) =>
 				text
 					.setPlaceholder("Scanned")
 					.setValue(this.plugin.settings.exportDefaultFolder)
 					.onChange(async (value) => {
-						this.plugin.settings.exportDefaultFolder = value || "Scanned";
+						this.plugin.settings.exportDefaultFolder =
+							value || "Scanned";
 						await this.plugin.saveSettings();
 					}),
 			);
@@ -124,7 +133,9 @@ class ScannerSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName("Optimize image size")
-			.setDesc("Resize exported image so the longest edge is 2000 px (maintains aspect ratio). Has no effect if the image is already smaller.")
+			.setDesc(
+				"Resize exported image so the longest edge is 2000 px (maintains aspect ratio). Has no effect if the image is already smaller.",
+			)
 			.addToggle((toggle) =>
 				toggle
 					.setValue(this.plugin.settings.optimizeImageSize)
@@ -136,7 +147,9 @@ class ScannerSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName("Strip alpha channel")
-			.setDesc("Flatten transparency to a white background before exporting. Reduces file size for JPG. Has no effect on SVG.")
+			.setDesc(
+				"Flatten transparency to a white background before exporting. Reduces file size for JPG. Has no effect on SVG.",
+			)
 			.addToggle((toggle) =>
 				toggle
 					.setValue(this.plugin.settings.stripAlpha)
@@ -148,7 +161,9 @@ class ScannerSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName("Export quality")
-			.setDesc("Compression quality for JPG exports (0.1 = smallest, 1.0 = best). Has no effect on PNG or SVG.")
+			.setDesc(
+				"Compression quality for JPG exports (0.1 = smallest, 1.0 = best). Has no effect on PNG or SVG.",
+			)
 			.addSlider((slider) =>
 				slider
 					.setLimits(0.1, 1.0, 0.05)
@@ -161,7 +176,9 @@ class ScannerSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName("Insert link after export")
-			.setDesc("Automatically insert a markdown image link into the active note after exporting")
+			.setDesc(
+				"Automatically insert a markdown image link into the active note after exporting",
+			)
 			.addToggle((toggle) =>
 				toggle
 					.setValue(this.plugin.settings.insertLinkAfterExport)
@@ -173,7 +190,9 @@ class ScannerSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName("Close scanner after export")
-			.setDesc("Automatically close the scanner window after successfully exporting an image")
+			.setDesc(
+				"Automatically close the scanner window after successfully exporting an image",
+			)
 			.addToggle((toggle) =>
 				toggle
 					.setValue(this.plugin.settings.closeAfterExport)

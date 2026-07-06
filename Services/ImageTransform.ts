@@ -1,7 +1,13 @@
+/*
+  Portions of this file are derived from the obsidian-scan-sketch plugin
+  by Show Wai Yan, licensed under the Zero-Clause BSD (0BSD) License.
+  See THIRD_PARTY_NOTICES/obsidian-scan-sketch/ for details.
+*/
+
 // @ts-ignore - No type definitions available for perspective-transform
 import PerspT from "perspective-transform";
+import { calculateOutputDimensions, orderCropPoints } from "./CropPointManager";
 import { CropPoint, ImageDimensions, OperationResult } from "./types";
-import { orderCropPoints, calculateOutputDimensions } from "./CropPointManager";
 
 /**
  * Perform perspective crop transformation on canvas image data
@@ -25,7 +31,8 @@ export function performPerspectiveCrop(
 		if (!cropPoints || cropPoints.length !== 4) {
 			return {
 				success: false,
-				message: "Need exactly 4 crop points. Please show crop points first.",
+				message:
+					"Need exactly 4 crop points. Please show crop points first.",
 			};
 		}
 
@@ -39,31 +46,41 @@ export function performPerspectiveCrop(
 		if (dimensions.width < 50 || dimensions.height < 50) {
 			return {
 				success: false,
-				message: "Crop area too small. Minimum dimensions: 50x50 pixels.",
+				message:
+					"Crop area too small. Minimum dimensions: 50x50 pixels.",
 			};
 		}
 
 		if (dimensions.width > 5000 || dimensions.height > 5000) {
 			return {
 				success: false,
-				message: "Crop area too large. Maximum dimensions: 5000x5000 pixels.",
+				message:
+					"Crop area too large. Maximum dimensions: 5000x5000 pixels.",
 			};
 		}
 
 		// Create source coordinates (current crop point positions)
 		const srcPoints = [
-			orderedPoints[0].x, orderedPoints[0].y, // Top-left
-			orderedPoints[1].x, orderedPoints[1].y, // Top-right
-			orderedPoints[2].x, orderedPoints[2].y, // Bottom-left
-			orderedPoints[3].x, orderedPoints[3].y, // Bottom-right
+			orderedPoints[0].x,
+			orderedPoints[0].y, // Top-left
+			orderedPoints[1].x,
+			orderedPoints[1].y, // Top-right
+			orderedPoints[2].x,
+			orderedPoints[2].y, // Bottom-left
+			orderedPoints[3].x,
+			orderedPoints[3].y, // Bottom-right
 		];
 
 		// Create destination coordinates (corners of output rectangle)
 		const dstPoints = [
-			0, 0,                        // Top-left
-			dimensions.width, 0,         // Top-right
-			0, dimensions.height,        // Bottom-left
-			dimensions.width, dimensions.height,  // Bottom-right
+			0,
+			0, // Top-left
+			dimensions.width,
+			0, // Top-right
+			0,
+			dimensions.height, // Bottom-left
+			dimensions.width,
+			dimensions.height, // Bottom-right
 		];
 
 		// Create perspective transform
@@ -71,7 +88,10 @@ export function performPerspectiveCrop(
 		const perspT = PerspT(srcPoints, dstPoints);
 
 		// Create output image data
-		const outputImageData = new ImageData(dimensions.width, dimensions.height);
+		const outputImageData = new ImageData(
+			dimensions.width,
+			dimensions.height,
+		);
 
 		// Apply perspective transformation pixel by pixel
 		for (let y = 0; y < dimensions.height; y++) {
@@ -81,15 +101,23 @@ export function performPerspectiveCrop(
 				const srcY = Math.round(srcCoords[1]);
 
 				// Check if source coordinates are within bounds
-				if (srcX >= 0 && srcX < sourceWidth && srcY >= 0 && srcY < sourceHeight) {
+				if (
+					srcX >= 0 &&
+					srcX < sourceWidth &&
+					srcY >= 0 &&
+					srcY < sourceHeight
+				) {
 					// Copy pixel from source to destination
 					const srcIdx = (srcY * sourceWidth + srcX) * 4;
 					const dstIdx = (y * dimensions.width + x) * 4;
 
-					outputImageData.data[dstIdx] = sourceImageData.data[srcIdx];         // R
-					outputImageData.data[dstIdx + 1] = sourceImageData.data[srcIdx + 1]; // G
-					outputImageData.data[dstIdx + 2] = sourceImageData.data[srcIdx + 2]; // B
-					outputImageData.data[dstIdx + 3] = sourceImageData.data[srcIdx + 3]; // A
+					outputImageData.data[dstIdx] = sourceImageData.data[srcIdx]; // R
+					outputImageData.data[dstIdx + 1] =
+						sourceImageData.data[srcIdx + 1]; // G
+					outputImageData.data[dstIdx + 2] =
+						sourceImageData.data[srcIdx + 2]; // B
+					outputImageData.data[dstIdx + 3] =
+						sourceImageData.data[srcIdx + 3]; // A
 				} else {
 					// Outside bounds - set to transparent/black
 					const dstIdx = (y * dimensions.width + x) * 4;
@@ -104,7 +132,6 @@ export function performPerspectiveCrop(
 			imageData: outputImageData,
 			dimensions,
 		};
-
 	} catch (error) {
 		console.error("Error during perspective crop:", error);
 		return {
@@ -132,7 +159,9 @@ export function createImageFromImageData(
 		const tempCanvas = activeDocument.createElement("canvas");
 		tempCanvas.width = width ?? imageData.width;
 		tempCanvas.height = height ?? imageData.height;
-		const tempCtx = tempCanvas.getContext("2d", { willReadFrequently: true });
+		const tempCtx = tempCanvas.getContext("2d", {
+			willReadFrequently: true,
+		});
 
 		if (!tempCtx) {
 			reject(new Error("Failed to create temporary canvas context."));
@@ -178,7 +207,8 @@ export function drawImageWithRotation(
 
 	// For 90° and 270°, we need to draw at swapped dimensions
 	// before rotating, because the canvas is already resized
-	const isRotated90or270 = normalizedRotation === 90 || normalizedRotation === 270;
+	const isRotated90or270 =
+		normalizedRotation === 90 || normalizedRotation === 270;
 	const drawWidth = isRotated90or270 ? canvasHeight : canvasWidth;
 	const drawHeight = isRotated90or270 ? canvasWidth : canvasHeight;
 

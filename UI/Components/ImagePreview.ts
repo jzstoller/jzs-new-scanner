@@ -1,28 +1,34 @@
-import { findCropPointAtPosition } from "Services/Interaction";
+/*
+  Portions of this file are derived from the obsidian-scan-sketch plugin
+  by Show Wai Yan, licensed under the Zero-Clause BSD (0BSD) License.
+  See THIRD_PARTY_NOTICES/obsidian-scan-sketch/ for details.
+*/
+
+import {
+	fillCanvasWithCheckerboard,
+	renderCropPoints,
+	renderMagnifier,
+	renderPlaceholder,
+} from "Services/CanvasRenderer";
 import {
 	initializeCropPoints,
-	updateCropPoint,
 	setCropPointDragging,
+	updateCropPoint,
 	validateCropPoints,
 } from "Services/CropPointManager";
 import {
-	performPerspectiveCrop,
+	calculateRotatedDimensions,
 	createImageFromImageData,
 	drawImageWithRotation,
-	calculateRotatedDimensions,
+	performPerspectiveCrop,
 } from "Services/ImageTransform";
-import {
-	fillCanvasWithCheckerboard,
-	renderPlaceholder,
-	renderCropPoints,
-	renderMagnifier,
-} from "Services/CanvasRenderer";
+import { findCropPointAtPosition } from "Services/Interaction";
 import {
 	CropPoint,
 	CropPointStyle,
-	PlaceholderConfig,
 	MagnifierConfig,
 	OperationResult,
+	PlaceholderConfig,
 } from "Services/types";
 
 export class ImagePreview {
@@ -114,8 +120,14 @@ export class ImagePreview {
 		this.canvas.addEventListener("mouseup", this.onMouseUp.bind(this));
 
 		// Touch events (mobile)
-		this.canvas.addEventListener("touchstart", this.onTouchStart.bind(this), { passive: false });
-		this.canvas.addEventListener("touchmove", this.onTouchMove.bind(this), { passive: false });
+		this.canvas.addEventListener(
+			"touchstart",
+			this.onTouchStart.bind(this),
+			{ passive: false },
+		);
+		this.canvas.addEventListener("touchmove", this.onTouchMove.bind(this), {
+			passive: false,
+		});
 		this.canvas.addEventListener("touchend", this.onTouchEnd.bind(this));
 	}
 
@@ -124,7 +136,10 @@ export class ImagePreview {
 	 * @param event - Mouse or Touch event
 	 * @returns Position {x, y} relative to canvas, or null if invalid
 	 */
-	private getPointerPositionFromMouse(event: MouseEvent): { x: number; y: number } {
+	private getPointerPositionFromMouse(event: MouseEvent): {
+		x: number;
+		y: number;
+	} {
 		const rect = this.canvas.getBoundingClientRect();
 		const computedStyle = window.getComputedStyle(this.canvas);
 		const borderLeft = parseFloat(computedStyle.borderLeftWidth) || 0;
@@ -135,7 +150,9 @@ export class ImagePreview {
 		};
 	}
 
-	private getPointerPositionFromTouch(event: TouchEvent): { x: number; y: number } | null {
+	private getPointerPositionFromTouch(
+		event: TouchEvent,
+	): { x: number; y: number } | null {
 		if (event.touches.length === 0) return null;
 		const rect = this.canvas.getBoundingClientRect();
 		const computedStyle = window.getComputedStyle(this.canvas);
@@ -155,11 +172,20 @@ export class ImagePreview {
 		const pos = this.getPointerPositionFromMouse(event);
 
 		// Find which crop point (if any) was clicked (20px hit area)
-		const clickedIndex = findCropPointAtPosition(pos.x, pos.y, this.cropPoints, 20);
+		const clickedIndex = findCropPointAtPosition(
+			pos.x,
+			pos.y,
+			this.cropPoints,
+			20,
+		);
 
 		if (clickedIndex !== -1) {
-		this.draggedPointIndex = clickedIndex;
-		this.cropPoints = setCropPointDragging(this.cropPoints, clickedIndex, true);
+			this.draggedPointIndex = clickedIndex;
+			this.cropPoints = setCropPointDragging(
+				this.cropPoints,
+				clickedIndex,
+				true,
+			);
 		} else {
 			this.draggedPointIndex = -1;
 		}
@@ -173,7 +199,12 @@ export class ImagePreview {
 		const pos = this.getPointerPositionFromMouse(event);
 
 		// Update the dragged crop point's position
-		this.cropPoints = updateCropPoint(this.cropPoints, this.draggedPointIndex, pos.x, pos.y);
+		this.cropPoints = updateCropPoint(
+			this.cropPoints,
+			this.draggedPointIndex,
+			pos.x,
+			pos.y,
+		);
 
 		// Redraw the image only (no crop points yet)
 		this.redrawImage();
@@ -209,11 +240,20 @@ export class ImagePreview {
 		if (!pos) return;
 
 		// Find which crop point (if any) was touched (30px hit area for touch)
-		const clickedIndex = findCropPointAtPosition(pos.x, pos.y, this.cropPoints, 30);
+		const clickedIndex = findCropPointAtPosition(
+			pos.x,
+			pos.y,
+			this.cropPoints,
+			30,
+		);
 
 		if (clickedIndex !== -1) {
-		this.draggedPointIndex = clickedIndex;
-		this.cropPoints = setCropPointDragging(this.cropPoints, clickedIndex, true);
+			this.draggedPointIndex = clickedIndex;
+			this.cropPoints = setCropPointDragging(
+				this.cropPoints,
+				clickedIndex,
+				true,
+			);
 		} else {
 			this.draggedPointIndex = -1;
 		}
@@ -230,7 +270,12 @@ export class ImagePreview {
 		if (!pos) return;
 
 		// Update the dragged crop point's position
-		this.cropPoints = updateCropPoint(this.cropPoints, this.draggedPointIndex, pos.x, pos.y);
+		this.cropPoints = updateCropPoint(
+			this.cropPoints,
+			this.draggedPointIndex,
+			pos.x,
+			pos.y,
+		);
 
 		// Redraw the image only (no crop points yet)
 		this.redrawImage();
@@ -331,7 +376,11 @@ export class ImagePreview {
 
 		const sourceWidth = this.img.naturalWidth || this.img.width;
 		const sourceHeight = this.img.naturalHeight || this.img.height;
-		return calculateRotatedDimensions(sourceWidth, sourceHeight, this.toRotateDegree);
+		return calculateRotatedDimensions(
+			sourceWidth,
+			sourceHeight,
+			this.toRotateDegree,
+		);
 	}
 
 	private createHighResWorkingCanvas(): HTMLCanvasElement {
@@ -344,7 +393,9 @@ export class ImagePreview {
 		workingCanvas.width = dimensions.width;
 		workingCanvas.height = dimensions.height;
 
-		const workingCtx = workingCanvas.getContext("2d", { willReadFrequently: true });
+		const workingCtx = workingCanvas.getContext("2d", {
+			willReadFrequently: true,
+		});
 		if (!workingCtx) {
 			throw new Error("Failed to create working canvas context");
 		}
@@ -365,7 +416,12 @@ export class ImagePreview {
 		const cssHeight = parseInt(this.canvas.style.height);
 		// const dpr = window.devicePixelRatio || 1;
 
-		renderPlaceholder(this.ctx, cssWidth, cssHeight, this.placeholderConfig);
+		renderPlaceholder(
+			this.ctx,
+			cssWidth,
+			cssHeight,
+			this.placeholderConfig,
+		);
 	}
 
 	public darawImage(file: File, onReady?: () => void) {
@@ -382,7 +438,10 @@ export class ImagePreview {
 			.then(() => {
 				this.img = img;
 				URL.revokeObjectURL(objectUrl);
-				this.resizeToImage(this.img.naturalWidth, this.img.naturalHeight);
+				this.resizeToImage(
+					this.img.naturalWidth,
+					this.img.naturalHeight,
+				);
 
 				// Wait for layout flush so canvas CSS dimensions are readable
 				window.requestAnimationFrame(() => {
@@ -390,7 +449,9 @@ export class ImagePreview {
 					const cssHeight = parseInt(this.canvas.style.height);
 
 					if (!cssWidth || !cssHeight) {
-						console.error("Canvas dimensions not ready after layout flush");
+						console.error(
+							"Canvas dimensions not ready after layout flush",
+						);
 						return;
 					}
 
@@ -436,9 +497,9 @@ export class ImagePreview {
 				success: false,
 				message: "Please upload photo first!",
 			};
-	}
+		}
 
-	// Clear crop points for safety (positions become invalid after rotation)
+		// Clear crop points for safety (positions become invalid after rotation)
 		this.removeCroppingPoints();
 
 		// Update rotation degree
@@ -522,7 +583,10 @@ export class ImagePreview {
 		this.croppingPointsVisible = false;
 	}
 
-	public toggleCroppingPoints(show: boolean, detectedPoints?: CropPoint[]): OperationResult {
+	public toggleCroppingPoints(
+		show: boolean,
+		detectedPoints?: CropPoint[],
+	): OperationResult {
 		let state = false;
 		let message = "";
 		if (this.img == null) {
@@ -532,7 +596,9 @@ export class ImagePreview {
 			if (show) {
 				this.drawCroppingPoints(detectedPoints);
 				state = true;
-				message = detectedPoints ? "Auto-detected corners displayed" : "Cropping points displayed";
+				message = detectedPoints
+					? "Auto-detected corners displayed"
+					: "Cropping points displayed";
 			} else {
 				this.removeCroppingPoints();
 				state = true;
@@ -552,7 +618,8 @@ export class ImagePreview {
 		if (!validateCropPoints(this.cropPoints)) {
 			return {
 				success: false,
-				message: "Need exactly 4 valid crop points. Please show crop points first.",
+				message:
+					"Need exactly 4 valid crop points. Please show crop points first.",
 			};
 		}
 
@@ -565,7 +632,9 @@ export class ImagePreview {
 		}
 
 		const workingCanvas = this.createHighResWorkingCanvas();
-		const workingCtx = workingCanvas.getContext("2d", { willReadFrequently: true });
+		const workingCtx = workingCanvas.getContext("2d", {
+			willReadFrequently: true,
+		});
 		if (!workingCtx) {
 			return {
 				success: false,
@@ -589,7 +658,7 @@ export class ImagePreview {
 			y: point.y * scaleY,
 		}));
 
-	// Perform the transformation
+		// Perform the transformation
 		const result = performPerspectiveCrop(
 			sourceImageData,
 			workingCanvas.width,
@@ -610,33 +679,35 @@ export class ImagePreview {
 			result.imageData,
 			result.dimensions.width,
 			result.dimensions.height,
-		).then((croppedImage) => {
-			// Replace the current image with the cropped version
-			this.img = croppedImage;
+		)
+			.then((croppedImage) => {
+				// Replace the current image with the cropped version
+				this.img = croppedImage;
 
-			// Reset rotation
-			this.toRotateDegree = 0;
+				// Reset rotation
+				this.toRotateDegree = 0;
 
-			// Resize canvas to match the cropped image dimensions
-			this.resizeToImage(this.img.width, this.img.height);
+				// Resize canvas to match the cropped image dimensions
+				this.resizeToImage(this.img.width, this.img.height);
 
-			// Update image dimensions to match new canvas size
-			const cssWidth = parseInt(this.canvas.style.width);
-			const cssHeight = parseInt(this.canvas.style.height);
-			this.imgX = 0;
-			this.imgY = 0;
-			this.imgWidth = cssWidth;
-			this.imgHeight = cssHeight;
+				// Update image dimensions to match new canvas size
+				const cssWidth = parseInt(this.canvas.style.width);
+				const cssHeight = parseInt(this.canvas.style.height);
+				this.imgX = 0;
+				this.imgY = 0;
+				this.imgWidth = cssWidth;
+				this.imgHeight = cssHeight;
 
-			// Redraw the cropped image
-			this.redrawImage();
+				// Redraw the cropped image
+				this.redrawImage();
 
-			// Hide crop points
-			this.cropPoints = [];
-		this.croppingPointsVisible = false;
-		}).catch((error) => {
-			console.error("Error creating image from crop:", error);
-		});
+				// Hide crop points
+				this.cropPoints = [];
+				this.croppingPointsVisible = false;
+			})
+			.catch((error) => {
+				console.error("Error creating image from crop:", error);
+			});
 
 		return {
 			success: true,
@@ -687,7 +758,9 @@ export class ImagePreview {
 		const exportCanvas = activeDocument.createElement("canvas");
 		exportCanvas.width = exportWidth;
 		exportCanvas.height = exportHeight;
-		const exportCtx = exportCanvas.getContext("2d", { willReadFrequently: true });
+		const exportCtx = exportCanvas.getContext("2d", {
+			willReadFrequently: true,
+		});
 
 		if (!exportCtx) {
 			throw new Error("Failed to create export canvas context");

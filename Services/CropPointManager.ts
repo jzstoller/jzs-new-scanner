@@ -1,4 +1,10 @@
-import { CropPoint, Rectangle, ImageDimensions } from "./types";
+/*
+  Portions of this file are derived from the obsidian-scan-sketch plugin
+  by Show Wai Yan, licensed under the Zero-Clause BSD (0BSD) License.
+  See THIRD_PARTY_NOTICES/obsidian-scan-sketch/ for details.
+*/
+
+import { CropPoint, ImageDimensions, Rectangle } from "./types";
 
 /**
  * Initialize crop points at the four corners of an image rectangle
@@ -9,8 +15,16 @@ export function initializeCropPoints(imageRect: Rectangle): CropPoint[] {
 	return [
 		{ x: imageRect.x, y: imageRect.y, isDragging: false }, // Top-left
 		{ x: imageRect.x + imageRect.width, y: imageRect.y, isDragging: false }, // Top-right
-		{ x: imageRect.x, y: imageRect.y + imageRect.height, isDragging: false }, // Bottom-left
-		{ x: imageRect.x + imageRect.width, y: imageRect.y + imageRect.height, isDragging: false }, // Bottom-right
+		{
+			x: imageRect.x,
+			y: imageRect.y + imageRect.height,
+			isDragging: false,
+		}, // Bottom-left
+		{
+			x: imageRect.x + imageRect.width,
+			y: imageRect.y + imageRect.height,
+			isDragging: false,
+		}, // Bottom-right
 	];
 }
 
@@ -51,7 +65,7 @@ export function setCropPointDragging(
 ): CropPoint[] {
 	if (index === -1) {
 		// Clear all dragging states
-		return points.map(p => ({ ...p, isDragging: false }));
+		return points.map((p) => ({ ...p, isDragging: false }));
 	}
 
 	if (index < 0 || index >= points.length) {
@@ -74,11 +88,12 @@ export function validateCropPoints(points: CropPoint[]): boolean {
 	}
 
 	// Check that all points have valid coordinates
-	return points.every(p => 
-		typeof p.x === "number" && 
-		typeof p.y === "number" && 
-		!isNaN(p.x) && 
-		!isNaN(p.y)
+	return points.every(
+		(p) =>
+			typeof p.x === "number" &&
+			typeof p.y === "number" &&
+			!isNaN(p.x) &&
+			!isNaN(p.y),
 	);
 }
 
@@ -113,13 +128,13 @@ export function calculateOutputDimensions(
 	// Calculate distances between points
 	// Top edge: point 0 to point 1
 	const topWidth = calculateDistance(points[0], points[1]);
-	
+
 	// Bottom edge: point 2 to point 3
 	const bottomWidth = calculateDistance(points[2], points[3]);
-	
+
 	// Left edge: point 0 to point 2
 	const leftHeight = calculateDistance(points[0], points[2]);
-	
+
 	// Right edge: point 1 to point 3
 	const rightHeight = calculateDistance(points[1], points[3]);
 
@@ -127,8 +142,8 @@ export function calculateOutputDimensions(
 	const width = Math.max(topWidth, bottomWidth);
 	const height = Math.max(leftHeight, rightHeight);
 
-	return { 
-		width: Math.round(width * dpr), 
+	return {
+		width: Math.round(width * dpr),
 		height: Math.round(height * dpr),
 	};
 }
@@ -148,7 +163,7 @@ export function orderCropPoints(points: CropPoint[]): CropPoint[] {
 	const sortedPoints = [...points];
 
 	// Find the top-left point (smallest sum of x + y)
-	sortedPoints.sort((a, b) => (a.x + a.y) - (b.x + b.y));
+	sortedPoints.sort((a, b) => a.x + a.y - (b.x + b.y));
 	const topLeft = sortedPoints[0];
 
 	// Find the bottom-right point (largest sum of x + y)
@@ -156,7 +171,7 @@ export function orderCropPoints(points: CropPoint[]): CropPoint[] {
 
 	// Of the remaining two points, find top-right and bottom-left
 	const remaining = [sortedPoints[1], sortedPoints[2]];
-	
+
 	// Top-right has smaller y (or larger x if y is similar)
 	// Bottom-left has larger y (or smaller x if y is similar)
 	const span = Math.max(

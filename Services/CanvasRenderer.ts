@@ -1,4 +1,15 @@
-import { CropPoint, CropPointStyle, PlaceholderConfig, MagnifierConfig } from "./types";
+/*
+  Portions of this file are derived from the obsidian-scan-sketch plugin
+  by Show Wai Yan, licensed under the Zero-Clause BSD (0BSD) License.
+  See THIRD_PARTY_NOTICES/obsidian-scan-sketch/ for details.
+*/
+
+import {
+	CropPoint,
+	CropPointStyle,
+	MagnifierConfig,
+	PlaceholderConfig,
+} from "./types";
 
 /**
  * Clear the entire canvas
@@ -55,7 +66,10 @@ export function fillCanvasWithCheckerboard(
 	for (let y = 0; y < height; y += squareSize) {
 		for (let x = 0; x < width; x += squareSize) {
 			// Alternate colors in a checkerboard pattern
-			const isEvenSquare = (Math.floor(x / squareSize) + Math.floor(y / squareSize)) % 2 === 0;
+			const isEvenSquare =
+				(Math.floor(x / squareSize) + Math.floor(y / squareSize)) %
+					2 ===
+				0;
 			ctx.fillStyle = isEvenSquare ? color1 : color2;
 			ctx.fillRect(x, y, squareSize, squareSize);
 		}
@@ -84,7 +98,13 @@ export function renderPlaceholder(
 
 	// Draw icon (camera/image icon)
 	const iconSize = Math.min(width, height) / 8;
-	renderImageIcon(ctx, centerX, centerY - iconSize, iconSize, config.iconColor);
+	renderImageIcon(
+		ctx,
+		centerX,
+		centerY - iconSize,
+		iconSize,
+		config.iconColor,
+	);
 
 	// Draw placeholder text
 	ctx.textAlign = "center";
@@ -94,11 +114,7 @@ export function renderPlaceholder(
 	const primaryFontSize = Math.max(16, Math.min(width, height) / 20);
 	ctx.font = `${primaryFontSize}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
 	ctx.fillStyle = config.textColor;
-	ctx.fillText(
-		config.primaryText,
-		centerX,
-		centerY + iconSize / 2,
-	);
+	ctx.fillText(config.primaryText, centerX, centerY + iconSize / 2);
 
 	// Secondary text
 	/**
@@ -280,7 +296,7 @@ export function renderMagnifier(
 		actualSourceX,
 		actualSourceY,
 		actualSourceSize,
-		actualSourceSize
+		actualSourceSize,
 	);
 
 	// Create temporary canvas for magnified content
@@ -298,7 +314,9 @@ export function renderMagnifier(
 	const sampleCanvas = activeDocument.createElement("canvas");
 	sampleCanvas.width = actualSourceSize;
 	sampleCanvas.height = actualSourceSize;
-	const sampleCtx = sampleCanvas.getContext("2d", { willReadFrequently: true });
+	const sampleCtx = sampleCanvas.getContext("2d", {
+		willReadFrequently: true,
+	});
 
 	if (!sampleCtx) {
 		return;
@@ -308,7 +326,17 @@ export function renderMagnifier(
 	sampleCtx.putImageData(canvasImageData, 0, 0);
 
 	// Draw the sampled content scaled up (magnified) onto temp canvas
-	tempCtx.drawImage(sampleCanvas, 0, 0, actualSourceSize, actualSourceSize, 0, 0, destSize, destSize);
+	tempCtx.drawImage(
+		sampleCanvas,
+		0,
+		0,
+		actualSourceSize,
+		actualSourceSize,
+		0,
+		0,
+		destSize,
+		destSize,
+	);
 
 	// Save context state
 	ctx.save();

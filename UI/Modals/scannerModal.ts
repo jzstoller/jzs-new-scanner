@@ -1,8 +1,14 @@
+/*
+  Portions of this file are derived from the obsidian-scan-sketch plugin
+  by Show Wai Yan, licensed under the Zero-Clause BSD (0BSD) License.
+  See THIRD_PARTY_NOTICES/obsidian-scan-sketch/ for details.
+*/
+
 import { App, ButtonComponent, Modal, Notice } from "obsidian";
 import { uploadImageToCanvas } from "Services/ImageUpload";
 import { detectPageCorners } from "Services/PageDetection";
-import { ImagePreview } from "UI/Components/ImagePreview";
 import { ExportControls } from "UI/Components/ExportControls";
+import { ImagePreview } from "UI/Components/ImagePreview";
 import type ScannerPlugin from "../../main";
 
 export class ScannerModal extends Modal {
@@ -21,7 +27,11 @@ export class ScannerModal extends Modal {
 	private processingNotice: Notice | null;
 	private exportControls: ExportControls;
 
-	constructor(app: App, plugin: ScannerPlugin, initialFile: File | null = null) {
+	constructor(
+		app: App,
+		plugin: ScannerPlugin,
+		initialFile: File | null = null,
+	) {
 		super(app);
 		this.plugin = plugin;
 		this.initialFile = initialFile;
@@ -32,7 +42,7 @@ export class ScannerModal extends Modal {
 		this.canvas = new ImagePreview(
 			this.container,
 			this.container.createEl("canvas"),
-			1,  // Square 1:1 ratio for initial placeholder
+			1, // Square 1:1 ratio for initial placeholder
 		);
 
 		this.buttonWrapper = this.contentEl.createDiv("button-wrapper");
@@ -59,7 +69,9 @@ export class ScannerModal extends Modal {
 			.setCta()
 			.onClick(() =>
 				uploadImageToCanvas((file) => {
-					this.canvas.darawImage(file, () => this.detectAndShowCorners());
+					this.canvas.darawImage(file, () =>
+						this.detectAndShowCorners(),
+					);
 				}),
 			);
 
@@ -74,18 +86,23 @@ export class ScannerModal extends Modal {
 			.onClick(() => this.toggleCropMode());
 
 		if (this.initialFile) {
-			this.canvas.darawImage(this.initialFile, () => this.detectAndShowCorners());
+			this.canvas.darawImage(this.initialFile, () =>
+				this.detectAndShowCorners(),
+			);
 		}
 
 		// Initialize export controls
 		this.exportControls = new ExportControls(
 			this.app,
-			(targetLongEdge?: number) => this.canvas.getExportCanvas(targetLongEdge),
+			(targetLongEdge?: number) =>
+				this.canvas.getExportCanvas(targetLongEdge),
 			this.plugin,
 			() => this.canvas.isImageLoaded(),
 			() => this.close(),
 		);
-		this.btnExport = this.exportControls.createExportButton(this.buttonWrapper);
+		this.btnExport = this.exportControls.createExportButton(
+			this.buttonWrapper,
+		);
 
 		// Confirmation buttons
 		this.btnConfirm = new ButtonComponent(this.confirmButtonWrapper)
@@ -108,13 +125,20 @@ export class ScannerModal extends Modal {
 
 		// Get image data for page detection
 		const previewCanvas = this.canvas.getCanvas();
-		const ctx = previewCanvas.getContext("2d", { willReadFrequently: true });
+		const ctx = previewCanvas.getContext("2d", {
+			willReadFrequently: true,
+		});
 		if (!ctx) {
 			new Notice("Failed to get canvas context");
 			return;
 		}
 
-		const imageData = ctx.getImageData(0, 0, previewCanvas.width, previewCanvas.height);
+		const imageData = ctx.getImageData(
+			0,
+			0,
+			previewCanvas.width,
+			previewCanvas.height,
+		);
 		// const dpr = window.devicePixelRatio || 1;
 
 		new Notice("Detecting page corners...", 2000);
@@ -124,13 +148,16 @@ export class ScannerModal extends Modal {
 
 		if (detectedCorners) {
 			const dpr = window.devicePixelRatio || 1;
-			const scaledCorners = detectedCorners.map(corner => ({
+			const scaledCorners = detectedCorners.map((corner) => ({
 				x: corner.x / dpr,
 				y: corner.y / dpr,
 				isDragging: false,
 			}));
 
-			const { success } = this.canvas.toggleCroppingPoints(true, scaledCorners);
+			const { success } = this.canvas.toggleCroppingPoints(
+				true,
+				scaledCorners,
+			);
 			if (success) {
 				this.buttonWrapper.hide();
 				this.confirmButtonWrapper.show();
@@ -138,7 +165,10 @@ export class ScannerModal extends Modal {
 				new Notice("Failed to display detected corners");
 			}
 		} else {
-			new Notice("✗ No page corners detected. Try adjusting the image or use manual crop.", 5000);
+			new Notice(
+				"✗ No page corners detected. Try adjusting the image or use manual crop.",
+				5000,
+			);
 		}
 	}
 
@@ -156,13 +186,16 @@ export class ScannerModal extends Modal {
 	private async confirmCrop() {
 		try {
 			// Show processing notice
-			this.processingNotice = new Notice("Processing perspective crop...", 0);
+			this.processingNotice = new Notice(
+				"Processing perspective crop...",
+				0,
+			);
 
 			// Disable buttons during processing
 			this.setButtonsEnabled(false);
 
 			// Add a small delay to allow UI to update
-			await new Promise(resolve => window.setTimeout(resolve, 100));
+			await new Promise((resolve) => window.setTimeout(resolve, 100));
 
 			// Perform the perspective crop
 			const result = this.canvas.performPerspectiveCrop();
@@ -178,7 +211,7 @@ export class ScannerModal extends Modal {
 				new Notice(result.message, 3000);
 
 				// Wait a brief moment for the crop to render
-				await new Promise(resolve => window.setTimeout(resolve, 100));
+				await new Promise((resolve) => window.setTimeout(resolve, 100));
 
 				// Hide crop confirmation buttons and show main buttons
 				this.confirmButtonWrapper.hide();

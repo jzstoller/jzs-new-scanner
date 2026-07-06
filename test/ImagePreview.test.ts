@@ -1,4 +1,10 @@
-import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
+/*
+  Portions of this file are derived from the obsidian-scan-sketch plugin
+  by Show Wai Yan, licensed under the Zero-Clause BSD (0BSD) License.
+  See THIRD_PARTY_NOTICES/obsidian-scan-sketch/ for details.
+*/
+
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ImagePreview } from "../UI/Components/ImagePreview";
 import type { MockCtx } from "./setup";
 
@@ -18,7 +24,9 @@ describe("ImagePreview", () => {
 		document.body.appendChild(parent);
 
 		canvas = document.createElement("canvas");
-		mockCtx = canvas.getContext("2d", { willReadFrequently: true }) as unknown as MockCtx;
+		mockCtx = canvas.getContext("2d", {
+			willReadFrequently: true,
+		}) as unknown as MockCtx;
 
 		imagePreview = new ImagePreview(parent, canvas, 4 / 3);
 	});
@@ -41,7 +49,9 @@ describe("ImagePreview", () => {
 
 			const badPreview = new ImagePreview(parent, badCanvas, 4 / 3);
 
-			expect(() => badPreview.setup()).toThrow("Failed to get 2D contect");
+			expect(() => badPreview.setup()).toThrow(
+				"Failed to get 2D contect",
+			);
 		});
 
 		it("should initialize with rotation degree of 0", () => {

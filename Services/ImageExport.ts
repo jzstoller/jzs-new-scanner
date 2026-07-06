@@ -1,3 +1,9 @@
+/*
+  Portions of this file are derived from the obsidian-scan-sketch plugin
+  by Show Wai Yan, licensed under the Zero-Clause BSD (0BSD) License.
+  See THIRD_PARTY_NOTICES/obsidian-scan-sketch/ for details.
+*/
+
 /**
  * Image export utilities for PNG and SVG formats
  * Pure functions with no Obsidian API dependencies
@@ -41,9 +47,10 @@ export function generateDefaultFilename(prefix = "scan"): string {
  * @param filename - Filename to validate (without extension)
  * @returns Validation result with message
  */
-export function validateFilename(
-	filename: string,
-): { valid: boolean; message: string } {
+export function validateFilename(filename: string): {
+	valid: boolean;
+	message: string;
+} {
 	if (!filename || filename.trim() === "") {
 		return { valid: false, message: "Filename cannot be empty" };
 	}
@@ -64,7 +71,9 @@ export function validateFilename(
 /**
  * Remove alpha channel by drawing onto an opaque RGB canvas
  */
-export function stripAlphaChannel(canvas: HTMLCanvasElement): HTMLCanvasElement {
+export function stripAlphaChannel(
+	canvas: HTMLCanvasElement,
+): HTMLCanvasElement {
 	const rgbCanvas = activeDocument.createElement("canvas");
 	rgbCanvas.width = canvas.width;
 	rgbCanvas.height = canvas.height;
@@ -130,9 +139,7 @@ export function exportCanvasToJPG(
  * @param canvas - Canvas element to export
  * @returns PNG blob with maximum quality
  */
-export function exportCanvasToPNG(
-	canvas: HTMLCanvasElement,
-): Promise<Blob> {
+export function exportCanvasToPNG(canvas: HTMLCanvasElement): Promise<Blob> {
 	return new Promise((resolve, reject) => {
 		canvas.toBlob(
 			(blob) => {
@@ -168,7 +175,12 @@ export function tintCanvasImage(
 	if (!ctx) return tempCanvas;
 	ctx.drawImage(canvas, 0, 0);
 
-	const imageData = ctx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
+	const imageData = ctx.getImageData(
+		0,
+		0,
+		tempCanvas.width,
+		tempCanvas.height,
+	);
 	const data = imageData.data;
 
 	const { r: tr, g: tg, b: tb } = hexToRgb(tintColor);

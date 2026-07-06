@@ -243,7 +243,14 @@ bash bump.sh <version>   # Bumps version, builds, commits, tags, pushes, creates
 
 ## License
 
-OBSD License — see the LICENSE file for details.
+This plugin is licensed under the MIT License.
+
+It includes portions of code from the `obsidian-scan-sketch` plugin by Show Wai Yan,
+which is licensed under the Zero-Clause BSD (0BSD) License.
+
+The original 0BSD license and copyright notice are preserved in:
+
+THIRD_PARTY_NOTICES/obsidian-scan-sketch/
 
 ---
 

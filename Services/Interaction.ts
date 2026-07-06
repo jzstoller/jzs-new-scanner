@@ -1,3 +1,9 @@
+/*
+  Portions of this file are derived from the obsidian-scan-sketch plugin
+  by Show Wai Yan, licensed under the Zero-Clause BSD (0BSD) License.
+  See THIRD_PARTY_NOTICES/obsidian-scan-sketch/ for details.
+*/
+
 /**
  * Check if a point is inside a circular shape
  * @param mouseX - X coordinate of the mouse click
