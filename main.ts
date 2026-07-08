@@ -16,6 +16,7 @@ interface ScannerSettings {
 	optimizeImageSize: boolean;
 	stripAlpha: boolean;
 	exportQuality: number;
+	autoWhiteBalance: boolean;
 }
 
 const DEFAULT_SETTINGS: ScannerSettings = {
@@ -27,6 +28,7 @@ const DEFAULT_SETTINGS: ScannerSettings = {
 	optimizeImageSize: true,
 	stripAlpha: false,
 	exportQuality: 0.92,
+	autoWhiteBalance: false,
 };
 
 export default class ScannerPlugin extends Plugin {
@@ -131,7 +133,19 @@ class ScannerSettingTab extends PluginSettingTab {
 						await this.plugin.saveSettings();
 					}),
 			);
-
+		new Setting(containerEl)
+			.setName("Auto white balance")
+			.setDesc(
+				"Automatically correct color cast before exporting, using the brightest areas of the scan as a white reference. Helps fix yellow/blue tinted scans. Note: has little visible effect on SVG exports, since those are recolored using the SVG tint color rather than the scan's original colors.",
+			)
+			.addToggle((toggle) =>
+				toggle
+					.setValue(this.plugin.settings.autoWhiteBalance)
+					.onChange(async (value) => {
+						this.plugin.settings.autoWhiteBalance = value;
+						await this.plugin.saveSettings();
+					}),
+			);
 		new Setting(containerEl)
 			.setName("Optimize image size")
 			.setDesc(
@@ -160,7 +174,7 @@ class ScannerSettingTab extends PluginSettingTab {
 					}),
 			);
 
-		new Setting(containerEl)
+		const exportQualitySetting = new Setting(containerEl)
 			.setName("Export quality")
 			.setDesc(
 				"Compression quality for JPG exports (0.1 = smallest, 1.0 = best). Has no effect on PNG or SVG.",
@@ -174,6 +188,25 @@ class ScannerSettingTab extends PluginSettingTab {
 						await this.plugin.saveSettings();
 					}),
 			);
+
+		const valueDisplay = exportQualitySetting.controlEl.createEl("span", {
+			text: this.plugin.settings.exportQuality.toFixed(2),
+			cls: "export-quality-value",
+		});
+		valueDisplay.style.marginLeft = "12px";
+		valueDisplay.style.fontWeight = "bold";
+		valueDisplay.style.color = "var(--text-accent)";
+
+		// Hook into the slider's input event to update display while dragging
+		const sliderInput = exportQualitySetting.controlEl.querySelector(
+			'input[type="range"]',
+		) as HTMLInputElement | null;
+		if (sliderInput) {
+			sliderInput.addEventListener("input", (e) => {
+				const target = e.target as HTMLInputElement;
+				valueDisplay.textContent = parseFloat(target.value).toFixed(2);
+			});
+		}
 
 		new Setting(containerEl)
 			.setName("Insert link after export")

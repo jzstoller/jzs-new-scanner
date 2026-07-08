@@ -6,6 +6,7 @@ import {
 } from "Services/ImageExport";
 import { compressCanvas } from "Services/ImageCompress";
 import { saveToVault } from "Services/VaultExport";
+import { applyWhiteBalanceToCanvas } from "Services/WhiteBalance";
 import type ScannerPlugin from "../../main";
 
 export class ExportControls {
@@ -14,6 +15,7 @@ export class ExportControls {
 	private plugin: ScannerPlugin;
 	private isImageLoaded: () => boolean;
 	private onExportComplete?: () => void;
+	private editorReference: unknown; // Store editor reference before modal takes focus
 
 	constructor(
 		app: App,
@@ -27,6 +29,7 @@ export class ExportControls {
 		this.plugin = plugin;
 		this.isImageLoaded = isImageLoaded;
 		this.onExportComplete = onExportComplete;
+		this.editorReference = null;
 	}
 
 	public createExportButton(container: HTMLElement): ButtonComponent {
@@ -41,6 +44,9 @@ export class ExportControls {
 			new Notice("Please upload photo first!");
 			return;
 		}
+
+		// Capture editor reference before modal takes focus
+		this.editorReference = this.app.workspace.activeEditor?.editor ?? null;
 
 		const {
 			exportDefaultFormat,
@@ -57,7 +63,11 @@ export class ExportControls {
 		try {
 			// SVG bypasses compression entirely
 			if (exportDefaultFormat === "svg") {
-				const canvas = this.getCanvas();
+				let canvas = this.getCanvas();
+				if (this.plugin.settings.autoWhiteBalance) {
+					canvas = applyWhiteBalanceToCanvas(canvas);
+				}
+				// const canvas = this.getCanvas();
 				const blob = exportCanvasToSVG(canvas, svgTintColor || undefined);
 				const filename = generateDefaultFilename() + getFileExtension("svg");
 				const file = await saveToVault(this.app.vault, exportDefaultFolder, filename, blob);
@@ -68,7 +78,11 @@ export class ExportControls {
 
 			// For raster formats, use compressCanvas which handles resize + alpha flatten + encode
 			const targetLongEdge = optimizeImageSize ? 2000 : undefined;
-			const canvas = this.getCanvas(targetLongEdge);
+			// const canvas = this.getCanvas(targetLongEdge);
+			let canvas = this.getCanvas(targetLongEdge);
+			if (this.plugin.settings.autoWhiteBalance) {
+				canvas = applyWhiteBalanceToCanvas(canvas);
+			}
 
 			const formatMimeMap: Record<string, "image/jpeg" | "image/png"> = {
 				png: "image/png",
@@ -98,10 +112,15 @@ export class ExportControls {
 	}
 
 	private finalize(filePath: string, insertLink: boolean, closeAfter: boolean) {
-		if (insertLink) {
-			const editor = this.app.workspace.activeEditor?.editor;
-			if (editor) {
+		if (insertLink && this.editorReference) {
+			try {
+				const editor = this.editorReference as {
+					replaceRange: (text: string, cursor: unknown) => void;
+					getCursor: () => unknown;
+				};
 				editor.replaceRange(`![[${filePath}]]\n`, editor.getCursor());
+			} catch (err) {
+				console.warn("Failed to insert link:", err);
 			}
 		}
 		if (closeAfter && this.onExportComplete) {

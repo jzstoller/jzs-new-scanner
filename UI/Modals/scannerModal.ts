@@ -167,10 +167,21 @@ export class ScannerModal extends Modal {
 				new Notice("Failed to display detected corners");
 			}
 		} else {
-			new Notice(
-				"✗ No page corners detected. Try adjusting the image or use manual crop.",
-				5000,
-			);
+			// If detection fails, enable manual crop with full-image corners as fallback
+			const { success, message } = this.canvas.toggleCroppingPoints(true);
+			if (success) {
+				new Notice(
+					"✗ No automatic corners found. Manual crop enabled — adjust corners as needed.",
+					4000,
+				);
+				this.buttonWrapper.hide();
+				this.confirmButtonWrapper.show();
+			} else {
+				new Notice(
+					"✗ No page corners detected. " + message,
+					5000,
+				);
+			}
 		}
 	}
 
