@@ -40,6 +40,80 @@ export interface MockCtx {
 }
 let mockCtx: MockCtx;
 
+class MockImageBitmap {
+	close = vi.fn();
+}
+
+function isInitPlaceholderMessage(
+	value: unknown,
+): value is {
+	requestId: number;
+	width: number;
+	height: number;
+} {
+	if (typeof value !== "object" || value === null) {
+		return false;
+	}
+
+	const candidate = value as {
+		type?: unknown;
+		requestId?: unknown;
+		width?: unknown;
+		height?: unknown;
+	};
+
+	return (
+		candidate.type === "init-placeholder" &&
+		typeof candidate.requestId === "number" &&
+		typeof candidate.width === "number" &&
+		typeof candidate.height === "number"
+	);
+}
+
+class MockWorker {
+	onmessage: ((event: MessageEvent<unknown>) => void) | null = null;
+	onerror: ((event: ErrorEvent) => void) | null = null;
+	private terminated = false;
+
+	constructor(_scriptUrl: string | URL) {}
+
+	postMessage(message: unknown) {
+		if (this.terminated) {
+			return;
+		}
+
+		if (!isInitPlaceholderMessage(message)) {
+			return;
+		}
+
+		setTimeout(() => {
+			if (this.terminated) {
+				return;
+			}
+
+			this.onmessage?.({
+				data: {
+					type: "placeholder-result",
+					requestId: message.requestId,
+					width: message.width,
+					height: message.height,
+					bitmap: new MockImageBitmap(),
+				},
+			} as MessageEvent<unknown>);
+		}, 0);
+	}
+
+	terminate() {
+		this.terminated = true;
+	}
+
+	addEventListener() {}
+	removeEventListener() {}
+	dispatchEvent() {
+		return true;
+	}
+}
+
 // Mock HTMLCanvasElement methods that are not available in happy-dom
 beforeEach(() => {
 	// Initialize fresh mocks for each test
@@ -109,6 +183,8 @@ beforeEach(() => {
 	// Mock URL.createObjectURL and revokeObjectURL
 	global.URL.createObjectURL = vi.fn(() => "blob:mock-url");
 	global.URL.revokeObjectURL = vi.fn();
+	global.ImageBitmap = MockImageBitmap as unknown as typeof global.ImageBitmap;
+	global.Worker = MockWorker as unknown as typeof global.Worker;
 
 	// Mock window.devicePixelRatio
 	Object.defineProperty(window, "devicePixelRatio", {

@@ -1,8 +1,5 @@
 import { App, ButtonComponent, Notice } from "obsidian";
-import {
-	generateDefaultFilename,
-	getFileExtension,
-} from "Services/ImageExport";
+import {generateDefaultFilename} from "Services/ImageExport";
 import { compressCanvas } from "Services/ImageCompress";
 import { saveToVault } from "Services/VaultExport";
 import { applyWhiteBalanceToCanvas } from "Services/WhiteBalance";

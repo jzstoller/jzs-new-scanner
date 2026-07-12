@@ -25,6 +25,11 @@ import {
 // import { performAutoWhiteBalance } from "Services/WhiteBalance";
 import { findCropPointAtPosition } from "Services/Interaction";
 import {
+	createPlaceholderWorker,
+	type PlaceholderInitMessage,
+	type PlaceholderResultMessage,
+} from "Services/PlaceholderWorker";
+import {
 	CropPoint,
 	CropPointStyle,
 	MagnifierConfig,
@@ -52,6 +57,8 @@ export class ImagePreview {
 	private croppingPointsVisible!: boolean;
 	private cropPoints!: CropPoint[];
 	private draggedPointIndex!: number;
+	private placeholderRequestId = 0;
+	private pendingPlaceholderWorker: Worker | null = null;
 
 	// Configuration
 	private magnifierConfig: MagnifierConfig;
@@ -109,8 +116,7 @@ export class ImagePreview {
 
 		// Wait for next frame to ensure parent has dimensions
 		window.requestAnimationFrame(() => {
-			this.resize();
-			this.initializePlaceholder();
+			this.updatePlaceholderUI();
 		});
 	}
 
@@ -412,30 +418,163 @@ export class ImagePreview {
 		return workingCanvas;
 	}
 
+	private updatePlaceholderUI() {
+		this.resize();
+		this.initializePlaceholder();
+	}
+
 	private initializePlaceholder() {
+		if (this.img) {
+			return;
+		}
+
 		const cssWidth = parseInt(this.canvas.style.width);
 		const cssHeight = parseInt(this.canvas.style.height);
-		// const dpr = window.devicePixelRatio || 1;
+		if (!cssWidth || !cssHeight) {
+			return;
+		}
+
+		this.placeholderRequestId += 1;
+		const requestId = this.placeholderRequestId;
+
+		this.pendingPlaceholderWorker?.terminate();
+		this.pendingPlaceholderWorker = null;
+
+		const worker = createPlaceholderWorker();
+		if (!worker) {
+			this.applyPlaceholder({
+				type: "placeholder-result",
+				requestId,
+				width: cssWidth,
+				height: cssHeight,
+				bitmap: null,
+			});
+			return;
+		}
+
+		this.pendingPlaceholderWorker = worker;
+		worker.onmessage = (event: MessageEvent<unknown>) => {
+			if (!this.isPlaceholderResultMessage(event.data)) {
+				return;
+			}
+
+			if (this.pendingPlaceholderWorker === worker) {
+				this.pendingPlaceholderWorker = null;
+			}
+
+			worker.terminate();
+			this.applyPlaceholder(event.data);
+		};
+		worker.onerror = () => {
+			if (this.pendingPlaceholderWorker === worker) {
+				this.pendingPlaceholderWorker = null;
+			}
+
+			worker.terminate();
+			this.applyPlaceholder({
+				type: "placeholder-result",
+				requestId,
+				width: cssWidth,
+				height: cssHeight,
+				bitmap: null,
+			});
+		};
+
+		const message: PlaceholderInitMessage = {
+			type: "init-placeholder",
+			requestId,
+			width: cssWidth,
+			height: cssHeight,
+			config: this.placeholderConfig,
+		};
+
+		worker.postMessage(message);
+	}
+
+	private applyPlaceholder(result: PlaceholderResultMessage) {
+		if (result.requestId !== this.placeholderRequestId || this.img) {
+			return;
+		}
+
+		if (result.bitmap instanceof ImageBitmap) {
+			this.ctx.clearRect(0, 0, result.width, result.height);
+			this.ctx.drawImage(result.bitmap, 0, 0, result.width, result.height);
+			result.bitmap.close();
+			return;
+		}
 
 		renderPlaceholder(
 			this.ctx,
-			cssWidth,
-			cssHeight,
+			result.width,
+			result.height,
 			this.placeholderConfig,
 		);
 	}
 
+	private isPlaceholderResultMessage(
+		value: unknown,
+	): value is PlaceholderResultMessage {
+		if (typeof value !== "object" || value === null) {
+			return false;
+		}
+
+		const candidate = value as Record<string, unknown>;
+		return (
+			candidate.type === "placeholder-result" &&
+			typeof candidate.requestId === "number" &&
+			typeof candidate.width === "number" &&
+			typeof candidate.height === "number" &&
+			"bitmap" in candidate
+		);
+	}
+
 	public darawImage(file: File, onReady?: () => void) {
+		this.placeholderRequestId += 1;
+		this.pendingPlaceholderWorker?.terminate();
+		this.pendingPlaceholderWorker = null;
+
 		// Clean up previous object URL if exists
 		if (this.img?.src?.startsWith("blob:")) {
 			URL.revokeObjectURL(this.img.src);
 		}
 
+		// Ensure callback fires exactly once (success or timeout)
+		let callbackFired = false;
+		const fireCallback = (success: boolean) => {
+			if (callbackFired) return;
+			callbackFired = true;
+			if (success) onReady?.();
+		};
+
 		const objectUrl = URL.createObjectURL(file);
 		const img = new Image();
+
+		// Timeout: if image doesn't load within 5 seconds, fail gracefully
+		const timeoutHandle = window.setTimeout(() => {
+			if (!callbackFired) {
+				console.warn(
+					"[Photo] Image load timeout (5s) - blob may be incomplete or corrupted",
+				);
+				URL.revokeObjectURL(objectUrl);
+				fireCallback(false);
+			}
+		}, 5000);
+
 		img.src = objectUrl;
 
 		const loadImage = () => {
+			window.clearTimeout(timeoutHandle);
+
+			// Validate image dimensions (prevent zero-size images)
+			if (img.naturalWidth === 0 || img.naturalHeight === 0) {
+				console.warn(
+					"[Photo] Image loaded but has zero dimensions - likely incomplete data",
+				);
+				URL.revokeObjectURL(objectUrl);
+				fireCallback(false);
+				return;
+			}
+
 			this.img = img;
 			URL.revokeObjectURL(objectUrl);
 			this.resizeToImage(
@@ -450,8 +589,9 @@ export class ImagePreview {
 
 				if (!cssWidth || !cssHeight) {
 					console.error(
-						"Canvas dimensions not ready after layout flush",
+						"[Photo] Canvas dimensions not ready after layout flush",
 					);
+					fireCallback(false);
 					return;
 				}
 
@@ -464,13 +604,19 @@ export class ImagePreview {
 
 				this.ctx.drawImage(this.img, 0, 0, cssWidth, cssHeight);
 
-				onReady?.();
+				console.debug(
+					`[Photo] Image rendered successfully: ${this.img.naturalWidth}x${this.img.naturalHeight}`,
+				);
+				fireCallback(true);
 			});
 		};
 
 		const onImageError = (err: unknown) => {
-			console.error("Failed to load image:", err);
+			window.clearTimeout(timeoutHandle);
+			const errorMsg = err instanceof Error ? err.message : String(err);
+			console.error("[Photo] Image load error:", errorMsg);
 			URL.revokeObjectURL(objectUrl);
+			fireCallback(false);
 		};
 
 		// Try decode() first (modern browsers); fall back to onload for iOS/older browsers
