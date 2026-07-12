@@ -185,18 +185,14 @@ class ScannerSettingTab extends PluginSettingTab {
 			text: this.plugin.settings.exportQuality.toFixed(2),
 			cls: "export-quality-value",
 		});
-		valueDisplay.style.marginLeft = "12px";
-		valueDisplay.style.fontWeight = "bold";
-		valueDisplay.style.color = "var(--text-accent)";
 
 		// Hook into the slider's input event to update display while dragging
 		const sliderInput = exportQualitySetting.controlEl.querySelector(
 			'input[type="range"]',
 		) as HTMLInputElement | null;
-		if (sliderInput) {
-			sliderInput.addEventListener("input", (e) => {
-				const target = e.target as HTMLInputElement;
-				valueDisplay.textContent = parseFloat(target.value).toFixed(2);
+		if (sliderInput instanceof HTMLInputElement) {
+			sliderInput.addEventListener("input", () => {
+				valueDisplay.textContent = parseFloat(sliderInput.value).toFixed(2);
 			});
 		}
 
