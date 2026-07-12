@@ -435,43 +435,54 @@ export class ImagePreview {
 		const img = new Image();
 		img.src = objectUrl;
 
-		img.decode()
-			.then(() => {
-				this.img = img;
-				URL.revokeObjectURL(objectUrl);
-				this.resizeToImage(
-					this.img.naturalWidth,
-					this.img.naturalHeight,
-				);
+		const loadImage = () => {
+			this.img = img;
+			URL.revokeObjectURL(objectUrl);
+			this.resizeToImage(
+				this.img.naturalWidth,
+				this.img.naturalHeight,
+			);
 
-				// Wait for layout flush so canvas CSS dimensions are readable
-				window.requestAnimationFrame(() => {
-					const cssWidth = parseInt(this.canvas.style.width);
-					const cssHeight = parseInt(this.canvas.style.height);
+			// Wait for layout flush so canvas CSS dimensions are readable
+			window.requestAnimationFrame(() => {
+				const cssWidth = parseInt(this.canvas.style.width);
+				const cssHeight = parseInt(this.canvas.style.height);
 
-					if (!cssWidth || !cssHeight) {
-						console.error(
-							"Canvas dimensions not ready after layout flush",
-						);
-						return;
-					}
+				if (!cssWidth || !cssHeight) {
+					console.error(
+						"Canvas dimensions not ready after layout flush",
+					);
+					return;
+				}
 
-					fillCanvasWithCheckerboard(this.ctx, cssWidth, cssHeight);
+				fillCanvasWithCheckerboard(this.ctx, cssWidth, cssHeight);
 
-					this.imgX = 0;
-					this.imgY = 0;
-					this.imgWidth = cssWidth;
-					this.imgHeight = cssHeight;
+				this.imgX = 0;
+				this.imgY = 0;
+				this.imgWidth = cssWidth;
+				this.imgHeight = cssHeight;
 
-					this.ctx.drawImage(this.img, 0, 0, cssWidth, cssHeight);
+				this.ctx.drawImage(this.img, 0, 0, cssWidth, cssHeight);
 
-					onReady?.();
-				});
-			})
-			.catch((err) => {
-				console.error("Failed to decode image:", err);
-				URL.revokeObjectURL(objectUrl);
+				onReady?.();
 			});
+		};
+
+		const onImageError = (err: unknown) => {
+			console.error("Failed to load image:", err);
+			URL.revokeObjectURL(objectUrl);
+		};
+
+		// Try decode() first (modern browsers); fall back to onload for iOS/older browsers
+		if (typeof img.decode === "function") {
+			img.decode()
+				.then(loadImage)
+				.catch(onImageError);
+		} else {
+			// Fallback for browsers that don't support img.decode()
+			img.onload = loadImage;
+			img.onerror = () => onImageError("Image load failed");
+		}
 	}
 
 	private redrawImage() {
