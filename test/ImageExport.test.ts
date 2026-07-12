@@ -8,10 +8,8 @@ import { beforeEach, describe, expect, it } from "vitest";
 import {
 	blobToArrayBuffer,
 	exportCanvasToPNG,
-	exportCanvasToSVG,
 	generateDefaultFilename,
 	getFileExtension,
-	tintCanvasImage,
 	validateFilename,
 } from "../Services/ImageExport";
 
@@ -154,116 +152,6 @@ describe("ImageExport", () => {
 		});
 	});
 
-	describe("exportCanvasToSVG", () => {
-		let canvas: HTMLCanvasElement;
-
-		beforeEach(() => {
-			canvas = document.createElement("canvas");
-			canvas.width = 200;
-			canvas.height = 150;
-
-			// Draw something on canvas
-			const ctx = canvas.getContext("2d", { willReadFrequently: true });
-			if (ctx) {
-				ctx.fillStyle = "blue";
-				ctx.fillRect(0, 0, 200, 150);
-			}
-		});
-
-		it("should create valid SVG blob", async () => {
-			const blob = exportCanvasToSVG(canvas);
-			expect(blob).toBeInstanceOf(Blob);
-			expect(blob.type).toBe("image/svg+xml");
-		});
-
-		it("should include XML declaration", async () => {
-			const blob = exportCanvasToSVG(canvas);
-			const text = await blob.text();
-			expect(text).toContain('<?xml version="1.0"');
-		});
-
-		it("should include proper xmlns", async () => {
-			const blob = exportCanvasToSVG(canvas);
-			const text = await blob.text();
-			expect(text).toContain('xmlns="http://www.w3.org/2000/svg"');
-		});
-
-		it("should embed PNG as base64", async () => {
-			const blob = exportCanvasToSVG(canvas);
-			const text = await blob.text();
-			expect(text).toContain("<image");
-			// Note: canvas.toDataURL() may return empty string in test environment
-			// In real browser, this would contain "data:image/png;base64"
-			expect(text).toContain('href="');
-		});
-
-		it("should preserve canvas dimensions", async () => {
-			const blob = exportCanvasToSVG(canvas);
-			const text = await blob.text();
-			expect(text).toContain('width="200"');
-			expect(text).toContain('height="150"');
-		});
-	});
-
-	describe("tintCanvasImage", () => {
-		let canvas: HTMLCanvasElement;
-
-		beforeEach(() => {
-			canvas = document.createElement("canvas");
-			canvas.width = 2;
-			canvas.height = 2;
-		});
-
-		it("should return a canvas with same dimensions", () => {
-			const tinted = tintCanvasImage(canvas, "#ff0000");
-			expect(tinted).toBeInstanceOf(HTMLCanvasElement);
-			expect(tinted.width).toBe(2);
-			expect(tinted.height).toBe(2);
-		});
-
-		it("should not throw for valid hex color", () => {
-			expect(() => tintCanvasImage(canvas, "#0000ff")).not.toThrow();
-		});
-
-		it("should not throw for hex color without hash", () => {
-			expect(() => tintCanvasImage(canvas, "ff0000")).not.toThrow();
-		});
-	});
-
-	describe("tinted SVG export", () => {
-		let canvas: HTMLCanvasElement;
-
-		beforeEach(() => {
-			canvas = document.createElement("canvas");
-			canvas.width = 100;
-			canvas.height = 100;
-			const ctx = canvas.getContext("2d", { willReadFrequently: true });
-			if (!ctx) return;
-			ctx.fillStyle = "black";
-			ctx.fillRect(0, 0, 100, 100);
-		});
-
-		it("should create SVG without tint when no color given", () => {
-			const blob = exportCanvasToSVG(canvas);
-			expect(blob).toBeInstanceOf(Blob);
-			expect(blob.type).toBe("image/svg+xml");
-		});
-
-		it("should create SVG with tint when color is provided", () => {
-			const blob = exportCanvasToSVG(canvas, "#ff0000");
-			expect(blob).toBeInstanceOf(Blob);
-			expect(blob.type).toBe("image/svg+xml");
-		});
-
-		it("should preserve SVG XML structure with tint", async () => {
-			const blob = exportCanvasToSVG(canvas, "#00ff00");
-			const text = await blob.text();
-			expect(text).toContain('<?xml version="1.0"');
-			expect(text).toContain('xmlns="http://www.w3.org/2000/svg"');
-			expect(text).toContain("<image");
-		});
-	});
-
 	describe("blobToArrayBuffer", () => {
 		it("should convert blob to ArrayBuffer", async () => {
 			const testData = "Hello, World!";
@@ -298,9 +186,9 @@ describe("ImageExport", () => {
 			expect(extension).toBe(".png");
 		});
 
-		it("should return .svg for svg format", () => {
-			const extension = getFileExtension("svg");
-			expect(extension).toBe(".svg");
+		it("should return .jpg for jpg format", () => {
+			const extension = getFileExtension("jpg");
+			expect(extension).toBe(".jpg");
 		});
 	});
 });

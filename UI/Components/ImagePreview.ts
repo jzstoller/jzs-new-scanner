@@ -22,7 +22,7 @@ import {
 	drawImageWithRotation,
 	performPerspectiveCrop,
 } from "Services/ImageTransform";
-import { performAutoWhiteBalance } from "Services/WhiteBalance";
+// import { performAutoWhiteBalance } from "Services/WhiteBalance";
 import { findCropPointAtPosition } from "Services/Interaction";
 import {
 	CropPoint,

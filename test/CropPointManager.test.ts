@@ -12,15 +12,15 @@ import { CropPoint } from "../Services/types";
 
 describe("CropPointManager", () => {
 	describe("initializeCropPoints", () => {
-		it("should create 4 crop points at rectangle corners", () => {
+			it("should create 4 inset crop points", () => {
 			const rect = { x: 10, y: 20, width: 100, height: 80 };
 			const points = initializeCropPoints(rect);
 
 			expect(points).toHaveLength(4);
-			expect(points[0]).toEqual({ x: 10, y: 20, isDragging: false }); // Top-left
-			expect(points[1]).toEqual({ x: 110, y: 20, isDragging: false }); // Top-right
-			expect(points[2]).toEqual({ x: 10, y: 100, isDragging: false }); // Bottom-left
-			expect(points[3]).toEqual({ x: 110, y: 100, isDragging: false }); // Bottom-right
+				expect(points[0]).toEqual({ x: 12, y: 21.6, isDragging: false }); // Top-left
+				expect(points[1]).toEqual({ x: 108, y: 21.6, isDragging: false }); // Top-right
+				expect(points[2]).toEqual({ x: 12, y: 98.4, isDragging: false }); // Bottom-left
+				expect(points[3]).toEqual({ x: 108, y: 98.4, isDragging: false }); // Bottom-right
 		});
 
 		it("should initialize all points as not dragging", () => {
@@ -30,6 +30,16 @@ describe("CropPointManager", () => {
 			points.forEach(point => {
 				expect(point.isDragging).toBe(false);
 			});
+		});
+
+		it("should preserve aspect ratio when inset", () => {
+			const rect = { x: 0, y: 0, width: 200, height: 100 };
+			const points = initializeCropPoints(rect);
+
+			const width = points[1].x - points[0].x;
+			const height = points[2].y - points[0].y;
+
+			expect(width / height).toBeCloseTo(rect.width / rect.height, 10);
 		});
 	});
 

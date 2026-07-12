@@ -12,17 +12,26 @@ import { CropPoint, ImageDimensions, Rectangle } from "./types";
  * @returns Array of 4 crop points at corners (TL, TR, BL, BR)
  */
 export function initializeCropPoints(imageRect: Rectangle): CropPoint[] {
+	// Inset each axis independently so the fallback rectangle keeps the same aspect ratio.
+	const insetPct = 0.02;
+	const insetX = imageRect.width * insetPct;
+	const insetY = imageRect.height * insetPct;
+
 	return [
-		{ x: imageRect.x, y: imageRect.y, isDragging: false }, // Top-left
-		{ x: imageRect.x + imageRect.width, y: imageRect.y, isDragging: false }, // Top-right
+		{ x: imageRect.x + insetX, y: imageRect.y + insetY, isDragging: false }, // Top-left
 		{
-			x: imageRect.x,
-			y: imageRect.y + imageRect.height,
+			x: imageRect.x + imageRect.width - insetX,
+			y: imageRect.y + insetY,
+			isDragging: false,
+		}, // Top-right
+		{
+			x: imageRect.x + insetX,
+			y: imageRect.y + imageRect.height - insetY,
 			isDragging: false,
 		}, // Bottom-left
 		{
-			x: imageRect.x + imageRect.width,
-			y: imageRect.y + imageRect.height,
+			x: imageRect.x + imageRect.width - insetX,
+			y: imageRect.y + imageRect.height - insetY,
 			isDragging: false,
 		}, // Bottom-right
 	];

@@ -14,6 +14,11 @@ describe("ImagePreview", () => {
 	let imagePreview: ImagePreview;
 	let mockCtx: MockCtx;
 
+	const loadImage = async (file: File) => {
+		imagePreview.darawImage(file);
+		await vi.runAllTimersAsync();
+	};
+
 	beforeEach(() => {
 		vi.useFakeTimers();
 
@@ -21,6 +26,14 @@ describe("ImagePreview", () => {
 		parent = document.createElement("div");
 		parent.style.width = "1000px";
 		parent.style.height = "750px";
+		Object.defineProperty(parent, "clientWidth", {
+			configurable: true,
+			value: 1000,
+		});
+		Object.defineProperty(parent, "clientHeight", {
+			configurable: true,
+			value: 750,
+		});
 		document.body.appendChild(parent);
 
 		canvas = document.createElement("canvas");
@@ -54,13 +67,12 @@ describe("ImagePreview", () => {
 			);
 		});
 
-		it("should initialize with rotation degree of 0", () => {
+		it("should initialize with rotation degree of 0", async () => {
 			imagePreview.setup();
 
 			// Load an image first
 			const file = new File([""], "test.png", { type: "image/png" });
-			imagePreview.darawImage(file);
-			vi.runAllTimers();
+			await loadImage(file);
 
 			mockCtx.clearRect.mockClear();
 
@@ -82,19 +94,17 @@ describe("ImagePreview", () => {
 			expect(result.message).toBe("Please upload photo first!");
 		});
 
-		it("should show cropping points when image is loaded", () => {
+		it("should show cropping points when image is loaded", async () => {
 			const file = new File([""], "test.png", { type: "image/png" });
-			imagePreview.darawImage(file);
-			vi.runAllTimers();
+			await loadImage(file);
 
 			const result = imagePreview.toggleCroppingPoints(true);
 			expect(result.success).toBe(true);
 		});
 
-		it("should draw cropping points with correct message", () => {
+		it("should draw cropping points with correct message", async () => {
 			const file = new File([""], "test.png", { type: "image/png" });
-			imagePreview.darawImage(file);
-			vi.runAllTimers();
+			await loadImage(file);
 
 			mockCtx.beginPath.mockClear();
 			mockCtx.arc.mockClear();
@@ -107,10 +117,9 @@ describe("ImagePreview", () => {
 			expect(mockCtx.arc).toHaveBeenCalled();
 		});
 
-		it("should remove cropping points when toggled off", () => {
+		it("should remove cropping points when toggled off", async () => {
 			const file = new File([""], "test.png", { type: "image/png" });
-			imagePreview.darawImage(file);
-			vi.runAllTimers();
+			await loadImage(file);
 
 			// First show the points
 			imagePreview.toggleCroppingPoints(true);
@@ -125,10 +134,9 @@ describe("ImagePreview", () => {
 			expect(mockCtx.clearRect).toHaveBeenCalled();
 		});
 
-		it("should draw 4 cropping points at image corners", () => {
+		it("should draw 4 cropping points at image corners", async () => {
 			const file = new File([""], "test.png", { type: "image/png" });
-			imagePreview.darawImage(file);
-			vi.runAllTimers();
+			await loadImage(file);
 
 			mockCtx.arc.mockClear();
 			imagePreview.toggleCroppingPoints(true);
@@ -137,10 +145,9 @@ describe("ImagePreview", () => {
 			expect(mockCtx.arc).toHaveBeenCalledTimes(8);
 		});
 
-		it("should draw connecting lines between crop points", () => {
+		it("should draw connecting lines between crop points", async () => {
 			const file = new File([""], "test.png", { type: "image/png" });
-			imagePreview.darawImage(file);
-			vi.runAllTimers();
+			await loadImage(file);
 
 			mockCtx.moveTo.mockClear();
 			mockCtx.lineTo.mockClear();
@@ -153,10 +160,9 @@ describe("ImagePreview", () => {
 			expect(mockCtx.closePath).toHaveBeenCalledTimes(1);
 		});
 
-		it("should not remove points if they are not visible", () => {
+		it("should not remove points if they are not visible", async () => {
 			const file = new File([""], "test.png", { type: "image/png" });
-			imagePreview.darawImage(file);
-			vi.runAllTimers();
+			await loadImage(file);
 
 			// Try to remove without showing first
 			const clearRectCalls = mockCtx.clearRect.mock.calls.length;
@@ -172,14 +178,13 @@ describe("ImagePreview", () => {
 			imagePreview.setup();
 		});
 
-		it("should load and draw image from file", () => {
+		it("should load and draw image from file", async () => {
 			const file = new File([""], "test.png", { type: "image/png" });
 
 			mockCtx.drawImage.mockClear();
 			mockCtx.fillRect.mockClear();
 
-			imagePreview.darawImage(file);
-			vi.runAllTimers();
+			await loadImage(file);
 
 			expect(mockCtx.drawImage).toHaveBeenCalled();
 			expect(mockCtx.fillRect).toHaveBeenCalled();
@@ -193,33 +198,30 @@ describe("ImagePreview", () => {
 			expect(global.URL.createObjectURL).toHaveBeenCalledWith(file);
 		});
 
-		it("should revoke object URL after loading", () => {
+		it("should revoke object URL after loading", async () => {
 			const file = new File([""], "test.png", { type: "image/png" });
 
-			imagePreview.darawImage(file);
-			vi.runAllTimers();
+			await loadImage(file);
 
 			expect(global.URL.revokeObjectURL).toHaveBeenCalled();
 		});
 
-		it("should clear canvas before drawing", () => {
+		it("should clear canvas before drawing", async () => {
 			const file = new File([""], "test.png", { type: "image/png" });
 
 			mockCtx.clearRect.mockClear();
 
-			imagePreview.darawImage(file);
-			vi.runAllTimers();
+			await loadImage(file);
 
 			expect(mockCtx.clearRect).toHaveBeenCalled();
 		});
 
-		it("should center image on canvas", () => {
+		it("should center image on canvas", async () => {
 			const file = new File([""], "test.png", { type: "image/png" });
 
 			mockCtx.drawImage.mockClear();
 
-			imagePreview.darawImage(file);
-			vi.runAllTimers();
+			await loadImage(file);
 
 			const drawImageCall = mockCtx.drawImage.mock.calls[0];
 			expect(drawImageCall).toBeDefined();

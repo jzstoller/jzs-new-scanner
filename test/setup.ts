@@ -91,8 +91,11 @@ beforeEach(() => {
 		src = "";
 		width = 800;
 		height = 600;
+		naturalWidth = 800;
+		naturalHeight = 600;
 		onload: (() => void) | null = null;
 		onerror: (() => void) | null = null;
+		decode = vi.fn(() => Promise.resolve());
 
 		constructor() {
 			setTimeout(() => {
