@@ -70,11 +70,19 @@ export class ScannerModal extends Modal {
 			.setTooltip("Upload image from gallery")
 			.setCta()
 			.onClick(() =>
-				uploadImageToCanvas((file) => {
-					this.canvas.darawImage(file, () =>
-						this.detectAndShowCorners(),
-					);
-				}),
+				uploadImageToCanvas(
+					(file) => {
+						this.canvas.darawImage(file, () =>
+							this.detectAndShowCorners(),
+						);
+					},
+					(errorMsg) => {
+						new Notice(
+							`📸 Photo capture failed: ${errorMsg}. Please try again.`,
+							5000,
+						);
+					},
+				),
 			);
 
 		this.btnDetectCorners = new ButtonComponent(this.buttonWrapper)
@@ -87,10 +95,22 @@ export class ScannerModal extends Modal {
 			.setTooltip("Crop image")
 			.onClick(() => this.toggleCropMode());
 
+		// Defer initial file processing until canvas is fully sized
+		// This ensures requestAnimationFrame from setup() completes first
 		if (this.initialFile) {
-			this.canvas.darawImage(this.initialFile, () =>
-				this.detectAndShowCorners(),
-			);
+			window.requestAnimationFrame(() => {
+				console.debug("[Photo] Processing initialFile with canvas ready");
+				this.canvas.darawImage(
+					this.initialFile as File,
+					() => this.detectAndShowCorners(),
+					(errorMsg) => {
+						new Notice(
+							`📸 Photo processing failed: ${errorMsg}. Please try again.`,
+							5000,
+						);
+					},
+				);
+			});
 		}
 
 		// Initialize export controls

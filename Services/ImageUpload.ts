@@ -5,46 +5,63 @@
 */
 
 /**
- * iOS file readiness wrapper: retries until file.size > 0
- * iOS sometimes returns the File object before data is flushed to disk
+ * iOS file readiness wrapper: validates file is fully written to disk
+ * iOS sometimes returns File object before data is flushed
+ * Checks: file.size > 0, file.type set, file.lastModified recent
  * @param file - File object from input picker
- * @param maxAttempts - Maximum retry attempts (default 20 = ~2 seconds at 100ms intervals)
+ * @param maxAttempts - Retry attempts (default 50 = ~5 seconds at 100ms intervals)
  * @returns Resolved file promise or rejects after timeout
  */
 function ensureFileReady(
 	file: File,
-	maxAttempts: number = 20,
+	maxAttempts: number = 50,
 ): Promise<File> {
 	return new Promise((resolve, reject) => {
 		let attempts = 0;
+		const startTime = Date.now();
 
-		const checkFileSize = () => {
+		const checkFileReady = () => {
 			attempts++;
+			const elapsed = Date.now() - startTime;
 
-			// File size is populated = file is ready
-			if (file.size > 0) {
-				console.debug(`[Photo] File ready on attempt ${attempts}, size: ${file.size}`);
+			// Check file metadata (size, type, timestamp)
+			const isReady = file.size > 0 && file.type && file.lastModified > 0;
+
+			if (isReady) {
+				console.debug(
+					`[Photo] File ready after ${attempts} attempts (${elapsed}ms): ${file.size} bytes, type=${file.type}`,
+				);
 				resolve(file);
 				return;
 			}
 
-			// Max retries exceeded
+			// Detailed logging for debugging (only on early attempts)
+			if (attempts <= 3) {
+				console.debug(
+					`[Photo] Attempt ${attempts}: size=${file.size}, type=${file.type || "(empty)"}, lastMod=${file.lastModified}`,
+				);
+			}
+
+			// Max retries exceeded (5 second timeout)
 			if (attempts >= maxAttempts) {
-				const errorMsg = `[Photo] File still has size 0 after ${maxAttempts} attempts (2s timeout)`;
-				console.warn(errorMsg);
+				const errorMsg = `[Photo] File not ready after ${attempts} attempts (${elapsed}ms): size=${file.size}, type=${file.type || "(empty)"}. Possible causes: iOS cache delay, network buffering, or corrupted file.`;
+				console.error(errorMsg);
 				reject(new Error(errorMsg));
 				return;
 			}
 
 			// Retry after 100ms
-			window.setTimeout(checkFileSize, 100);
+			window.setTimeout(checkFileReady, 100);
 		};
 
-		checkFileSize();
+		checkFileReady();
 	});
 }
 
-export function uploadImageToCanvas(drawImageOnCanvas: (file: File) => void) {
+export function uploadImageToCanvas(
+	drawImageOnCanvas: (file: File) => void,
+	onError?: (message: string) => void,
+) {
 	const input: HTMLInputElement = activeDocument.createElement("input");
 	input.type = "file";
 	input.accept = "image/*";
@@ -64,18 +81,27 @@ export function uploadImageToCanvas(drawImageOnCanvas: (file: File) => void) {
 
 		if (!file) {
 			console.warn("[Photo] No file selected");
+			// Don't fire onError for user cancellation
 			return;
 		}
 
 		try {
-			// iOS workaround: wait until file size is populated
+			// iOS workaround: ensure file is fully written to disk
+			// Checks: file.size > 0, file.type set, file.lastModified valid
 			const readyFile = await ensureFileReady(file);
 			callbackFired = true;
+			console.debug("[Photo] File validation passed, invoking image handler");
 			drawImageOnCanvas(readyFile);
 		} catch (error) {
-			const message = error instanceof Error ? error.message : "Unknown error";
-			console.error("[Photo] Failed to ensure file is ready:", message);
-			// Don't block UI; let user retry
+			callbackFired = true;
+			const message =
+				error instanceof Error
+					? error.message
+					: "Photo file could not be read. Please try again.";
+			console.error("[Photo] File validation failed:", message);
+			if (onError) {
+				onError(message);
+			}
 		}
 
 		// Clean up input so it can be used again

@@ -528,7 +528,7 @@ export class ImagePreview {
 		);
 	}
 
-	public darawImage(file: File, onReady?: () => void) {
+	public darawImage(file: File, onReady?: () => void, onError?: (message: string) => void) {
 		this.placeholderRequestId += 1;
 		this.pendingPlaceholderWorker?.terminate();
 		this.pendingPlaceholderWorker = null;
@@ -540,10 +540,14 @@ export class ImagePreview {
 
 		// Ensure callback fires exactly once (success or timeout)
 		let callbackFired = false;
-		const fireCallback = (success: boolean) => {
+		const fireCallback = (success: boolean, errorMsg?: string) => {
 			if (callbackFired) return;
 			callbackFired = true;
-			if (success) onReady?.();
+			if (success) {
+				onReady?.();
+			} else if (errorMsg && onError) {
+				onError(errorMsg);
+			}
 		};
 
 		const objectUrl = URL.createObjectURL(file);
@@ -552,11 +556,10 @@ export class ImagePreview {
 		// Timeout: if image doesn't load within 5 seconds, fail gracefully
 		const timeoutHandle = window.setTimeout(() => {
 			if (!callbackFired) {
-				console.warn(
-					"[Photo] Image load timeout (5s) - blob may be incomplete or corrupted",
-				);
+				const timeoutMsg = "Image load timeout (5s) - file may be incomplete or corrupted";
+				console.warn(`[Photo] ${timeoutMsg}`);
 				URL.revokeObjectURL(objectUrl);
-				fireCallback(false);
+				fireCallback(false, timeoutMsg);
 			}
 		}, 5000);
 
@@ -567,11 +570,10 @@ export class ImagePreview {
 
 			// Validate image dimensions (prevent zero-size images)
 			if (img.naturalWidth === 0 || img.naturalHeight === 0) {
-				console.warn(
-					"[Photo] Image loaded but has zero dimensions - likely incomplete data",
-				);
+				const zeroDimMsg = "Image data incomplete (zero dimensions)";
+				console.warn(`[Photo] ${zeroDimMsg}`);
 				URL.revokeObjectURL(objectUrl);
-				fireCallback(false);
+				fireCallback(false, zeroDimMsg);
 				return;
 			}
 
@@ -588,10 +590,9 @@ export class ImagePreview {
 				const cssHeight = parseInt(this.canvas.style.height);
 
 				if (!cssWidth || !cssHeight) {
-					console.error(
-						"[Photo] Canvas dimensions not ready after layout flush",
-					);
-					fireCallback(false);
+					const canvasMsg = "Canvas layout not ready";
+					console.error(`[Photo] ${canvasMsg}`);
+					fireCallback(false, canvasMsg);
 					return;
 				}
 
@@ -616,7 +617,7 @@ export class ImagePreview {
 			const errorMsg = err instanceof Error ? err.message : String(err);
 			console.error("[Photo] Image load error:", errorMsg);
 			URL.revokeObjectURL(objectUrl);
-			fireCallback(false);
+			fireCallback(false, `Failed to load image: ${errorMsg}`);
 		};
 
 		// Try decode() first (modern browsers); fall back to onload for iOS/older browsers
