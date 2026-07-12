@@ -188,8 +188,9 @@ class ScannerSettingTab extends PluginSettingTab {
 
 		// Hook into the slider's input event to update display while dragging
 		const sliderInput = exportQualitySetting.controlEl.querySelector(
-			'input[type="range"]',
-		) as HTMLInputElement | null;
+			'input[type="range"]'
+		);
+
 		if (sliderInput instanceof HTMLInputElement) {
 			sliderInput.addEventListener("input", () => {
 				valueDisplay.textContent = parseFloat(sliderInput.value).toFixed(2);
