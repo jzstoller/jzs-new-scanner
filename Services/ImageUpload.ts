@@ -4,10 +4,12 @@
   See THIRD_PARTY_NOTICES/obsidian-scan-sketch/ for details.
 */
 
+import { DiagnosticLogger } from "./DiagnosticLogger";
+
 /**
  * iOS file readiness wrapper: validates file is fully written to disk
  * iOS sometimes returns File object before data is flushed
- * Checks: file.size > 0, file.type set, file.lastModified recent
+ * Checks: file.size > 0, file.type set (lastModified not required on iOS)
  * @param file - File object from input picker
  * @param maxAttempts - Retry attempts (default 50 = ~5 seconds at 100ms intervals)
  * @returns Resolved file promise or rejects after timeout
@@ -24,28 +26,35 @@ function ensureFileReady(
 			attempts++;
 			const elapsed = Date.now() - startTime;
 
-			// Check file metadata (size, type, timestamp)
-			const isReady = file.size > 0 && file.type && file.lastModified > 0;
+			// Check file metadata: must have size and MIME type
+			// Note: iOS sometimes returns lastModified=0, so we don't require it
+			const isReady = file.size > 0 && file.type;
 
 			if (isReady) {
-				console.debug(
-					`[Photo] File ready after ${attempts} attempts (${elapsed}ms): ${file.size} bytes, type=${file.type}`,
-				);
+				const msg = `[Photo] ✅ File ready after ${attempts} attempts (${elapsed}ms): ${file.size} bytes, type=${file.type}, name="${file.name}"`;
+				console.debug(msg);
+				DiagnosticLogger.log(msg);
 				resolve(file);
 				return;
 			}
 
 			// Detailed logging for debugging (only on early attempts)
 			if (attempts <= 3) {
-				console.debug(
-					`[Photo] Attempt ${attempts}: size=${file.size}, type=${file.type || "(empty)"}, lastMod=${file.lastModified}`,
+				DiagnosticLogger.log(
+					`[Photo] ⏳ Attempt ${attempts}: size=${file.size}, type=${file.type || "(empty)"}, name="${file.name}"`,
+				);
+			} else if (attempts % 10 === 0) {
+				// Log every 10 attempts to show progress
+				DiagnosticLogger.log(
+					`[Photo] ⏳ Still waiting... attempt ${attempts}/${maxAttempts} (${elapsed}ms)`,
 				);
 			}
 
 			// Max retries exceeded (5 second timeout)
 			if (attempts >= maxAttempts) {
-				const errorMsg = `[Photo] File not ready after ${attempts} attempts (${elapsed}ms): size=${file.size}, type=${file.type || "(empty)"}. Possible causes: iOS cache delay, network buffering, or corrupted file.`;
+				const errorMsg = `[Photo] ❌ File not ready after ${attempts} attempts (${elapsed}ms): size=${file.size}, type=${file.type || "(empty)"}. Possible causes: iOS cache delay, network buffering, or corrupted file.`;
 				console.error(errorMsg);
+				DiagnosticLogger.log(errorMsg);
 				reject(new Error(errorMsg));
 				return;
 			}
@@ -54,6 +63,7 @@ function ensureFileReady(
 			window.setTimeout(checkFileReady, 100);
 		};
 
+		DiagnosticLogger.log(`[Photo] 🔍 Starting file readiness check for "${file.name}"`);
 		checkFileReady();
 	});
 }
@@ -62,35 +72,47 @@ export function uploadImageToCanvas(
 	drawImageOnCanvas: (file: File) => void,
 	onError?: (message: string) => void,
 ) {
+	DiagnosticLogger.log("[Photo] 📂 Opening file picker");
 	const input: HTMLInputElement = activeDocument.createElement("input");
 	input.type = "file";
 	input.accept = "image/*";
-	// Remove capture="camera" to allow both camera and photo library on mobile
 
 	let callbackFired = false;
+	let lastFileReceived: File | null = null;
 
 	input.onchange = async (e: Event) => {
-		// Prevent duplicate processing if input fires multiple events
+		DiagnosticLogger.log("[Photo] 🎯 Picker change event fired");
+
+		// On iOS, multiple change events can fire; only process once we have a valid file
 		if (callbackFired) {
-			console.debug("[Photo] Input change already processed, ignoring duplicate event");
+			DiagnosticLogger.log("[Photo] ⚠️ Callback already fired, ignoring duplicate event");
 			return;
 		}
 
 		const target = e.target as HTMLInputElement;
 		const file = target.files?.[0];
 
+		// iOS can deliver null on first callback, real file on second
+		// Only complain about cancellation if we never received any file
 		if (!file) {
-			console.warn("[Photo] No file selected");
-			// Don't fire onError for user cancellation
+			if (!lastFileReceived) {
+				DiagnosticLogger.log("[Photo] ⚠️ User cancelled picker (no file selected)");
+			} else {
+				DiagnosticLogger.log("[Photo] ℹ️ Change event fired but no file in files[0], waiting for next event");
+			}
 			return;
 		}
 
+		lastFileReceived = file;
+		DiagnosticLogger.log(`[Photo] 📸 File received: "${file.name}" (${file.size} bytes, type="${file.type}")`);
+
 		try {
 			// iOS workaround: ensure file is fully written to disk
-			// Checks: file.size > 0, file.type set, file.lastModified valid
+			// Retries up to 50 times over ~5 seconds
+			DiagnosticLogger.log("[Photo] 🔐 Starting file readiness validation...");
 			const readyFile = await ensureFileReady(file);
 			callbackFired = true;
-			console.debug("[Photo] File validation passed, invoking image handler");
+			DiagnosticLogger.log("[Photo] ✅ File validation passed! Opening scanner modal...");
 			drawImageOnCanvas(readyFile);
 		} catch (error) {
 			callbackFired = true;
@@ -98,7 +120,8 @@ export function uploadImageToCanvas(
 				error instanceof Error
 					? error.message
 					: "Photo file could not be read. Please try again.";
-			console.error("[Photo] File validation failed:", message);
+			console.error("[Photo] ❌ File validation failed:", message);
+			DiagnosticLogger.log(`[Photo] ❌ File validation failed: ${message}`);
 			if (onError) {
 				onError(message);
 			}
@@ -108,5 +131,6 @@ export function uploadImageToCanvas(
 		input.value = "";
 	};
 
+	DiagnosticLogger.log("[Photo] 🖱️ Triggering file picker click");
 	input.click();
 }

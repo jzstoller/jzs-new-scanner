@@ -4,8 +4,9 @@
   See THIRD_PARTY_NOTICES/obsidian-scan-sketch/ for details.
 */
 
-import { App, Plugin, PluginSettingTab, Setting } from "obsidian";
+import { App, Notice, Plugin, PluginSettingTab, Setting } from "obsidian";
 import type { ExportFormat } from "./Services/ImageExport";
+import { DiagnosticLogger } from "./Services/DiagnosticLogger";
 
 interface ScannerSettings {
 	exportDefaultFolder: string;
@@ -35,17 +36,28 @@ export default class ScannerPlugin extends Plugin {
 	async onload() {
 		await this.loadSettings();
 
+		// Initialize diagnostic logger for iOS debugging
+		DiagnosticLogger.initialize(this.app);
+
 		const openWithFilePicker = async () => {
 			const { ScannerModal } = await import("./UI/Modals/scannerModal");
-			const input = activeDocument.createElement("input");
-			input.type = "file";
-			input.accept = "image/*";
-			input.onchange = () => {
-				const file = input.files?.[0];
-				new ScannerModal(this.app, this, file ?? null).open();
-				input.value = "";
-			};
-			input.click();
+			const { uploadImageToCanvas } = await import("./Services/ImageUpload");
+
+			// Use uploadImageToCanvas to ensure iOS file readiness validation
+			// This guarantees the file is fully written before opening the modal
+			uploadImageToCanvas(
+				(file) => {
+					// File has passed ensureFileReady() validation
+					new ScannerModal(this.app, this, file).open();
+				},
+				(errorMsg) => {
+					// Show error to user if file validation fails
+					new Notice(
+						`📸 Photo capture failed: ${errorMsg}. Please try again.`,
+						5000,
+					);
+				},
+			);
 		};
 
 		this.addRibbonIcon("scan", "Simple Scanner2", openWithFilePicker);

@@ -29,6 +29,7 @@ import {
 	type PlaceholderInitMessage,
 	type PlaceholderResultMessage,
 } from "Services/PlaceholderWorker";
+import { DiagnosticLogger } from "Services/DiagnosticLogger";
 import {
 	CropPoint,
 	CropPointStyle,
@@ -529,73 +530,113 @@ export class ImagePreview {
 	}
 
 	public darawImage(file: File, onReady?: () => void, onError?: (message: string) => void) {
+		DiagnosticLogger.log(`[Photo] 🖼️ darawImage() called with file: "${file.name}" (${file.size} bytes)`);
+
+		// Validate input file exists and has content
+		if (!file || file.size === 0) {
+			const msg = "❌ File is empty or invalid";
+			console.error(`[Photo] ${msg}`);
+			DiagnosticLogger.log(`[Photo] Debug: file=${file}, size=${file?.size}`);
+			if (onError) onError(msg);
+			return;
+		}
+
+		DiagnosticLogger.log(`[Photo] ✅ File validation passed: size=${file.size}, type="${file.type}"`);
+
 		this.placeholderRequestId += 1;
 		this.pendingPlaceholderWorker?.terminate();
 		this.pendingPlaceholderWorker = null;
 
 		// Clean up previous object URL if exists
 		if (this.img?.src?.startsWith("blob:")) {
+			DiagnosticLogger.log(`[Photo] 🧹 Cleaning up previous blob URL`);
 			URL.revokeObjectURL(this.img.src);
 		}
 
 		// Ensure callback fires exactly once (success or timeout)
 		let callbackFired = false;
 		const fireCallback = (success: boolean, errorMsg?: string) => {
-			if (callbackFired) return;
+			if (callbackFired) {
+				DiagnosticLogger.log(`[Photo] ⚠️ fireCallback called but already fired! Success=${success}, msg="${errorMsg}"`);
+				return;
+			}
 			callbackFired = true;
+			DiagnosticLogger.log(`[Photo] 🔔 Firing callback: success=${success}, msg="${errorMsg || ""}"`);
 			if (success) {
+				DiagnosticLogger.log(`[Photo] ✅ onReady() callback executing...`);
 				onReady?.();
 			} else if (errorMsg && onError) {
+				DiagnosticLogger.log(`[Photo] ❌ onError() callback executing: "${errorMsg}"`);
 				onError(errorMsg);
 			}
 		};
 
 		const objectUrl = URL.createObjectURL(file);
+		DiagnosticLogger.log(`[Photo] 🔗 Created blob URL: ${objectUrl}`);
+
 		const img = new Image();
+		DiagnosticLogger.log(`[Photo] 🎨 Created Image object`);
 
 		// Timeout: if image doesn't load within 5 seconds, fail gracefully
+		DiagnosticLogger.log(`[Photo] ⏰ Setting 5 second timeout for image load`);
 		const timeoutHandle = window.setTimeout(() => {
 			if (!callbackFired) {
-				const timeoutMsg = "Image load timeout (5s) - file may be incomplete or corrupted";
-				console.warn(`[Photo] ${timeoutMsg}`);
+				const timeoutMsg = "❌ Image load timeout (5s) - file may be incomplete or corrupted";
+				console.error(`[Photo] ${timeoutMsg}`);
+				DiagnosticLogger.log(`[Photo] ${timeoutMsg}`);
 				URL.revokeObjectURL(objectUrl);
 				fireCallback(false, timeoutMsg);
+			} else {
+				DiagnosticLogger.log(`[Photo] ℹ️ Timeout fired but callback already handled (success)`);
 			}
 		}, 5000);
 
-		img.src = objectUrl;
-
 		const loadImage = () => {
+			DiagnosticLogger.log(`[Photo] 📥 loadImage() handler fired!`);
 			window.clearTimeout(timeoutHandle);
+			DiagnosticLogger.log(`[Photo] ⏰ Cleared timeout`);
 
 			// Validate image dimensions (prevent zero-size images)
+			DiagnosticLogger.log(`[Photo] 📐 Checking dimensions: naturalWidth=${img.naturalWidth}, naturalHeight=${img.naturalHeight}`);
 			if (img.naturalWidth === 0 || img.naturalHeight === 0) {
-				const zeroDimMsg = "Image data incomplete (zero dimensions)";
+				const zeroDimMsg = "❌ Image data incomplete (zero dimensions)";
 				console.warn(`[Photo] ${zeroDimMsg}`);
+				DiagnosticLogger.log(`[Photo] ${zeroDimMsg}`);
 				URL.revokeObjectURL(objectUrl);
 				fireCallback(false, zeroDimMsg);
 				return;
 			}
 
+			DiagnosticLogger.log(`[Photo] ✅ Image dimensions valid: ${img.naturalWidth}x${img.naturalHeight}`);
 			this.img = img;
+			DiagnosticLogger.log(`[Photo] 💾 Stored image in this.img`);
+
 			URL.revokeObjectURL(objectUrl);
+			DiagnosticLogger.log(`[Photo] 🧹 Revoked blob URL`);
+
 			this.resizeToImage(
 				this.img.naturalWidth,
 				this.img.naturalHeight,
 			);
+			DiagnosticLogger.log(`[Photo] 📏 Resized canvas to image dimensions`);
 
 			// Wait for layout flush so canvas CSS dimensions are readable
+			DiagnosticLogger.log(`[Photo] ⏳ Requesting animation frame for layout flush...`);
 			window.requestAnimationFrame(() => {
+				DiagnosticLogger.log(`[Photo] 🎬 Animation frame callback fired`);
 				const cssWidth = parseInt(this.canvas.style.width);
 				const cssHeight = parseInt(this.canvas.style.height);
+				DiagnosticLogger.log(`[Photo] 📐 Canvas CSS dimensions: ${cssWidth}x${cssHeight}`);
 
 				if (!cssWidth || !cssHeight) {
-					const canvasMsg = "Canvas layout not ready";
+					const canvasMsg = "❌ Canvas layout not ready";
 					console.error(`[Photo] ${canvasMsg}`);
+					DiagnosticLogger.log(`[Photo] ${canvasMsg}`);
 					fireCallback(false, canvasMsg);
 					return;
 				}
 
+				DiagnosticLogger.log(`[Photo] 🎨 Drawing checkerboard...`);
 				fillCanvasWithCheckerboard(this.ctx, cssWidth, cssHeight);
 
 				this.imgX = 0;
@@ -603,32 +644,55 @@ export class ImagePreview {
 				this.imgWidth = cssWidth;
 				this.imgHeight = cssHeight;
 
+				DiagnosticLogger.log(`[Photo] 🖌️ Drawing image to canvas (0,0,${cssWidth},${cssHeight})...`);
 				this.ctx.drawImage(this.img, 0, 0, cssWidth, cssHeight);
 
-				console.debug(
-					`[Photo] Image rendered successfully: ${this.img.naturalWidth}x${this.img.naturalHeight}`,
+				DiagnosticLogger.log(
+					`[Photo] ✅ Image rendered successfully: ${this.img.naturalWidth}x${this.img.naturalHeight} → ${cssWidth}x${cssHeight}`,
 				);
 				fireCallback(true);
 			});
 		};
 
 		const onImageError = (err: unknown) => {
+			DiagnosticLogger.log(`[Photo] ❌ onImageError() handler fired!`);
 			window.clearTimeout(timeoutHandle);
 			const errorMsg = err instanceof Error ? err.message : String(err);
-			console.error("[Photo] Image load error:", errorMsg);
+			console.error(`[Photo] Error details: ${errorMsg}`);
+			DiagnosticLogger.log(`[Photo] Error details: ${errorMsg}`);
+			console.error(`[Photo] Stack:`, err instanceof Error ? err.stack : "(no stack)");
+			DiagnosticLogger.log(`[Photo] Stack: ${err instanceof Error ? err.stack : "(no stack)"}`);
 			URL.revokeObjectURL(objectUrl);
 			fireCallback(false, `Failed to load image: ${errorMsg}`);
 		};
 
-		// Try decode() first (modern browsers); fall back to onload for iOS/older browsers
+		// Set up handlers BEFORE assigning src to avoid race conditions on cached images
+		DiagnosticLogger.log(`[Photo] 📌 Attaching onload handler...`);
+		img.onload = loadImage;
+		DiagnosticLogger.log(`[Photo] 📌 Attaching onerror handler...`);
+		img.onerror = () => onImageError("Image load failed");
+
+		// Try decode() if available (modern browsers including newer iOS WebKit)
 		if (typeof img.decode === "function") {
+			DiagnosticLogger.log(`[Photo] ✨ img.decode() is available, using it`);
+			img.src = objectUrl;
+			DiagnosticLogger.log(`[Photo] 🔗 Assigned src, now calling decode()...`);
 			img.decode()
-				.then(loadImage)
-				.catch(onImageError);
+				.then(() => {
+					DiagnosticLogger.log(`[Photo] ✅ decode() promise resolved!`);
+					loadImage();
+				})
+				.catch((decodeErr) => {
+					console.error(`[Photo] ❌ decode() promise rejected:`, decodeErr);
+					DiagnosticLogger.log(`[Photo] ❌ decode() promise rejected: ${decodeErr}`);
+					onImageError(decodeErr);
+				});
 		} else {
-			// Fallback for browsers that don't support img.decode()
-			img.onload = loadImage;
-			img.onerror = () => onImageError("Image load failed");
+			// Fallback for browsers without decode() support (older iOS, legacy browsers)
+			DiagnosticLogger.log(`[Photo] ℹ️ img.decode() not available, using onload fallback`);
+			// onload/onerror are already set above
+			DiagnosticLogger.log(`[Photo] 🔗 Assigning src to trigger onload...`);
+			img.src = objectUrl;
 		}
 	}
 

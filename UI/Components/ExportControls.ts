@@ -3,6 +3,7 @@ import {generateDefaultFilename} from "Services/ImageExport";
 import { compressCanvas } from "Services/ImageCompress";
 import { saveToVault } from "Services/VaultExport";
 import { applyWhiteBalanceToCanvas } from "Services/WhiteBalance";
+import { DiagnosticLogger } from "Services/DiagnosticLogger";
 import type ScannerPlugin from "../../main";
 
 export class ExportControls {
@@ -32,7 +33,11 @@ export class ExportControls {
 		return new ButtonComponent(container)
 			.setIcon("download")
 			.setTooltip("Export image")
-			.onClick(() => this.handleExportClick());
+			.onClick(() => {
+				console.log("[Photo] 🔘 EXPORT BUTTON CLICKED");
+				DiagnosticLogger.log("[Photo] 🔘 EXPORT BUTTON CLICKED");
+				this.handleExportClick();
+			});
 	}
 
 	private async handleExportClick(): Promise<void> {
@@ -43,6 +48,9 @@ export class ExportControls {
 
 		// Capture editor reference before modal takes focus
 		this.editorReference = this.app.workspace.activeEditor?.editor ?? null;
+
+		// Log start of export
+		DiagnosticLogger.log("[Photo] 🚀 Export initiated - capturing canvas...");
 
 		const {
 			exportDefaultFormat,
@@ -56,6 +64,8 @@ export class ExportControls {
 		const processingNotice = new Notice("Exporting...", 0);
 
 		try {
+			DiagnosticLogger.log("[Photo] 📦 Canvas retrieved, applying filters...");
+
 			// Raster export path handles resize + alpha flatten + encode
 			const targetLongEdge = optimizeImageSize ? 2000 : undefined;
 			let canvas = this.getCanvas(targetLongEdge);
@@ -74,16 +84,26 @@ export class ExportControls {
 
 			const filename = generateDefaultFilename() + "." + result.ext;
 			const blob = new Blob([result.buffer], { type: requestedMime });
+			DiagnosticLogger.log(`[Photo] 💾 Saving to vault: ${filename}...`);
 			const file = await saveToVault(this.app.vault, exportDefaultFolder, filename, blob);
 
 			processingNotice.hide();
 			new Notice(`Exported ${result.width}×${result.height} · ${(result.byteLength / 1024).toFixed(0)} KB → ${file.path}`, 4000);
+
+			// Flush diagnostic logs to note on successful export
+			DiagnosticLogger.log(`[Photo] 📊 Export successful: ${result.width}×${result.height}, ${result.byteLength} bytes → ${file.path}`);
+			DiagnosticLogger.log("[Photo] 📝 Appending diagnostics to note...");
+			await DiagnosticLogger.flushToNote(true);
+
 			this.finalize(file.path, insertLinkAfterExport, closeAfterExport);
 
 		} catch (error) {
 			processingNotice.hide();
 			const message = error instanceof Error ? error.message : String(error);
-			new Notice(message, 5000);
+			DiagnosticLogger.log(`[Photo] ❌ EXPORT ERROR: ${message}`);
+			DiagnosticLogger.log("[Photo] 📝 Appending error diagnostics to note...");
+			await DiagnosticLogger.flushToNote(false);
+			new Notice(`Photo export failed: ${message}`, 5000);
 		}
 	}
 

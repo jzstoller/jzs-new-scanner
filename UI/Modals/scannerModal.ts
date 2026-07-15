@@ -7,6 +7,7 @@
 import { App, ButtonComponent, Modal, Notice } from "obsidian";
 import { uploadImageToCanvas } from "Services/ImageUpload";
 import { detectPageCorners } from "Services/PageDetection";
+import { DiagnosticLogger } from "Services/DiagnosticLogger";
 import { ExportControls } from "UI/Components/ExportControls";
 import { ImagePreview } from "UI/Components/ImagePreview";
 import type ScannerPlugin from "../../main";
@@ -33,6 +34,7 @@ export class ScannerModal extends Modal {
 		initialFile: File | null = null,
 	) {
 		super(app);
+		DiagnosticLogger.log(`[Photo] 🆕 ScannerModal constructor called, initialFile: ${initialFile ? "yes" : "null"}`);
 		this.plugin = plugin;
 		this.initialFile = initialFile;
 		this.setTitle("Scan image");
@@ -54,36 +56,65 @@ export class ScannerModal extends Modal {
 	}
 
 	onOpen() {
+		console.log("[Photo] 🪟 ScannerModal.onOpen() called");
+		DiagnosticLogger.log("[Photo] 🪟 ScannerModal.onOpen() called");
+		console.log(`[Photo] 📁 initialFile: ${this.initialFile ? `"${this.initialFile.name}"` : "null"}`);
+		DiagnosticLogger.log(`[Photo] 📁 initialFile: ${this.initialFile ? `"${this.initialFile.name}"` : "null"}`);
+
+		// Capture the target editor BEFORE modal takes focus
+		// This ensures logs are flushed to the original note even if modal becomes activeEditor
+		const targetEditor = this.app.workspace.activeEditor?.editor;
+		if (targetEditor) {
+			DiagnosticLogger.setTargetEditor(targetEditor);
+			DiagnosticLogger.log("[Photo] 📝 Captured target editor for log flushing");
+			console.log("[Photo] 📝 Target editor set in DiagnosticLogger");
+		} else {
+			console.warn("[Photo] ⚠️ WARNING: No active editor found when opening modal!");
+			DiagnosticLogger.log("[Photo] ⚠️ WARNING: No active editor found when opening modal!");
+		}
+
 		try {
+			console.log("[Photo] 🎨 Setting up canvas...");
+			DiagnosticLogger.log("[Photo] 🎨 Setting up canvas...");
 			this.canvas.setup();
+			console.log("[Photo] ✅ Canvas setup complete");
+			DiagnosticLogger.log("[Photo] ✅ Canvas setup complete");
 		} catch (error) {
 			const message =
 				error instanceof Error ? error.message : String(error);
-			console.error(`Error: ${message}`);
+			console.error(`[Photo] ❌ Canvas setup error: ${message}`);
+			DiagnosticLogger.log(`[Photo] ❌ Canvas setup error: ${message}`);
 			new Notice(
 				"Cannot create image preview canvas, please review details in console",
 			);
+			return;
 		}
 
 		this.btnPhotoUpload = new ButtonComponent(this.buttonWrapper)
 			.setIcon("image")
 			.setTooltip("Upload image from gallery")
 			.setCta()
-			.onClick(() =>
+			.onClick(() => {
+				console.log("[Photo] 📸 Manual upload button clicked");
+				DiagnosticLogger.log("[Photo] 📸 Manual upload button clicked");
 				uploadImageToCanvas(
 					(file) => {
+						console.log(`[Photo] 📸 Manual upload callback: drawing image "${file.name}"`);
+						DiagnosticLogger.log(`[Photo] 📸 Manual upload callback: drawing image "${file.name}"`);
 						this.canvas.darawImage(file, () =>
 							this.detectAndShowCorners(),
 						);
 					},
 					(errorMsg) => {
+						console.error(`[Photo] ❌ Manual upload error: ${errorMsg}`);
+						DiagnosticLogger.log(`[Photo] ❌ Manual upload error: ${errorMsg}`);
 						new Notice(
 							`📸 Photo capture failed: ${errorMsg}. Please try again.`,
 							5000,
 						);
 					},
-				),
-			);
+				);
+			});
 
 		this.btnDetectCorners = new ButtonComponent(this.buttonWrapper)
 			.setIcon("scan")
@@ -98,12 +129,21 @@ export class ScannerModal extends Modal {
 		// Defer initial file processing until canvas is fully sized
 		// This ensures requestAnimationFrame from setup() completes first
 		if (this.initialFile) {
+			console.log(`[Photo] 📋 Initial file received, deferring to requestAnimationFrame...`);
+			DiagnosticLogger.log(`[Photo] 📋 Initial file received, deferring to requestAnimationFrame...`);
 			window.requestAnimationFrame(() => {
-				console.debug("[Photo] Processing initialFile with canvas ready");
+				console.log(`[Photo] 🎬 Animation frame fired, now processing initial file "${this.initialFile?.name}"`);
+				DiagnosticLogger.log(`[Photo] 🎬 Animation frame fired, now processing initial file "${this.initialFile?.name}"`);
 				this.canvas.darawImage(
 					this.initialFile as File,
-					() => this.detectAndShowCorners(),
+					() => {
+						console.log(`[Photo] ✅ Initial file loaded, running detectAndShowCorners`);
+						DiagnosticLogger.log(`[Photo] ✅ Initial file loaded, running detectAndShowCorners`);
+						this.detectAndShowCorners();
+					},
 					(errorMsg) => {
+						console.error(`[Photo] ❌ Initial file processing error: ${errorMsg}`);
+						DiagnosticLogger.log(`[Photo] ❌ Initial file processing error: ${errorMsg}`);
 						new Notice(
 							`📸 Photo processing failed: ${errorMsg}. Please try again.`,
 							5000,
@@ -111,9 +151,14 @@ export class ScannerModal extends Modal {
 					},
 				);
 			});
+		} else {
+			console.log("[Photo] ℹ️ No initial file, waiting for manual upload");
+			DiagnosticLogger.log("[Photo] ℹ️ No initial file, waiting for manual upload");
 		}
 
 		// Initialize export controls
+		console.log("[Photo] ⚙️ Initializing export controls...");
+		DiagnosticLogger.log("[Photo] ⚙️ Initializing export controls...");
 		this.exportControls = new ExportControls(
 			this.app,
 			(targetLongEdge?: number) =>
@@ -137,6 +182,9 @@ export class ScannerModal extends Modal {
 			.setIcon("x")
 			.setTooltip("Cancel")
 			.onClick(() => this.cancelCrop());
+
+		console.log("[Photo] ✅ ScannerModal.onOpen() complete, modal ready");
+		DiagnosticLogger.log("[Photo] ✅ ScannerModal.onOpen() complete, modal ready");
 	}
 
 	private detectAndShowCorners() {
@@ -312,6 +360,26 @@ export class ScannerModal extends Modal {
 		if (this.processingNotice) {
 			this.processingNotice.hide();
 			this.processingNotice = null;
+		}
+
+		// Failsafe: if there are any accumulated logs that weren't flushed (e.g., user closed without exporting),
+		// flush them now to preserve diagnostics
+		const remainingLogs = DiagnosticLogger.getLogs();
+		if (remainingLogs.length > 0) {
+			console.log(`[Photo] 🔧 Modal closing with ${remainingLogs.length} unflushed logs - flushing now as failsafe`);
+
+			// Capture a fresh editor reference before flushing (activeEditor should be back to the note)
+			const currentEditor = this.app.workspace.activeEditor?.editor;
+			if (currentEditor) {
+				DiagnosticLogger.setTargetEditor(currentEditor);
+				console.log("[Photo] 🔧 Failsafe: Refreshed target editor from activeEditor");
+			}
+
+			DiagnosticLogger.flushToNote(true).catch((err) => {
+				console.error("[Photo] 🔧 Failsafe flush failed:", err);
+			});
+		} else {
+			console.log("[Photo] 🔧 Modal closing - no unflushed logs, nothing to failsafe");
 		}
 
 		// Clean up export controls
