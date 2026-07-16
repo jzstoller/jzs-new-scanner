@@ -56,6 +56,7 @@ export class ScannerModal extends Modal {
 	onOpen() {
 		try {
 			this.canvas.setup();
+			void this.plugin.logger.info('Canvas setup');
 		} catch (error) {
 			const message =
 				error instanceof Error ? error.message : String(error);
@@ -161,6 +162,7 @@ export class ScannerModal extends Modal {
 				scaledCorners,
 			);
 			if (success) {
+				void this.plugin.logger.info('Detected corners');
 				this.buttonWrapper.hide();
 				this.confirmButtonWrapper.show();
 			} else {

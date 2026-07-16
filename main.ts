@@ -6,6 +6,7 @@
 
 import { App, Plugin, PluginSettingTab, Setting } from "obsidian";
 import type { ExportFormat } from "./Services/ImageExport";
+import Logger from './Services/Logger';
 
 interface ScannerSettings {
 	exportDefaultFolder: string;
@@ -33,24 +34,41 @@ const DEFAULT_SETTINGS: ScannerSettings = {
 
 export default class ScannerPlugin extends Plugin {
 	settings!: ScannerSettings;
+	logger!: Logger;
 
 	async onload() {
+		this.logger = new Logger(this.app, {
+			prefix: 'Scanner',
+			logFilePath: 'Logs/Scanner Log.md',
+		});
+
+		await this.logger.info('Plugin loaded');
+
 		await this.loadSettings();
 
+		await this.logger.info('Settings loaded');
+
 		const openWithFilePicker = async () => {
-			const { ScannerModal } = await import("./UI/Modals/scannerModal");
-			const input = activeDocument.createElement("input");
-			input.type = "file";
-			input.accept = "image/*";
-			input.onchange = () => {
-				const file = input.files?.[0];
-				new ScannerModal(this.app, this, file ?? null).open();
-				input.value = "";
-			};
-			input.click();
+			try {
+				const { ScannerModal } = await import("./UI/Modals/scannerModal");
+				const input = activeDocument.createElement("input");
+				input.type = "file";
+				input.accept = "image/*";
+				input.onchange = () => {
+					const file = input.files?.[0];
+					this.logger.info('File picked');
+					new ScannerModal(this.app, this, file ?? null).open();
+					input.value = "";
+				};
+				input.click();
+			} catch (err) {
+				await this.logger.error(`Failed to open scanner: ${String(err)}`);
+			}
 		};
 
 		this.addRibbonIcon("scan", "Simple Scanner2", openWithFilePicker);
+
+		await this.logger.info('Added Ribbon Icon');
 
 		this.addCommand({
 			id: "open-scanner2",
@@ -62,18 +80,27 @@ export default class ScannerPlugin extends Plugin {
 		this.addSettingTab(new ScannerSettingTab(this.app, this));
 	}
 
-	onunload() {}
+	onunload() { void this.logger.info('Plugin unloaded'); }
 
 	async loadSettings() {
-		this.settings = Object.assign(
-			{},
-			DEFAULT_SETTINGS,
-			((await this.loadData()) as Partial<ScannerSettings> | null) ?? {},
-		);
+		try {
+			this.settings = Object.assign(
+				{},
+				DEFAULT_SETTINGS,
+				((await this.loadData()) as Partial<ScannerSettings> | null) ?? {},
+			);
+		} catch (err) {
+			await this.logger.error(`Failed to load settings, using defaults: ${String(err)}`);
+			this.settings = { ...DEFAULT_SETTINGS };
+		}
 	}
 
 	async saveSettings() {
-		await this.saveData(this.settings);
+		try {
+			await this.saveData(this.settings);
+		} catch (err) {
+			await this.logger.error(`Failed to save settings: ${String(err)}`);
+		}
 	}
 }
 
