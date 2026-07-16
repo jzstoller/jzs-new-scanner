@@ -9,6 +9,7 @@ import PerspT from "perspective-transform";
 import { calculateOutputDimensions, orderCropPoints } from "./CropPointManager";
 import { CropPoint, ImageDimensions, OperationResult } from "./types";
 
+// Perspective correction turns the user-selected quad back into a flat rectangle before export.
 /**
  * Perform perspective crop transformation on canvas image data
  * Transforms the quadrilateral defined by crop points into a rectangle

@@ -1,14 +1,15 @@
 import { App, ButtonComponent, Notice } from "obsidian";
+import { compressCanvas } from "Services/ImageCompress";
 import {
-	generateDefaultFilename,
 	exportCanvasToSVG,
+	generateDefaultFilename,
 	getFileExtension,
 } from "Services/ImageExport";
-import { compressCanvas } from "Services/ImageCompress";
 import { saveToVault } from "Services/VaultExport";
 import { applyWhiteBalanceToCanvas } from "Services/WhiteBalance";
 import type ScannerPlugin from "../../main";
 
+// ExportControls owns the vault write-back path so the modal can stay focused on preview and cropping.
 export class ExportControls {
 	private app: App;
 	private getCanvas: (targetLongEdge?: number) => HTMLCanvasElement;
@@ -45,6 +46,7 @@ export class ExportControls {
 			return;
 		}
 
+		// Save the current editor because the modal steals focus before Obsidian can insert the exported link.
 		// Capture editor reference before modal takes focus
 		this.editorReference = this.app.workspace.activeEditor?.editor ?? null;
 
@@ -68,11 +70,24 @@ export class ExportControls {
 					canvas = applyWhiteBalanceToCanvas(canvas);
 				}
 				// const canvas = this.getCanvas();
-				const blob = exportCanvasToSVG(canvas, svgTintColor || undefined);
-				const filename = generateDefaultFilename() + getFileExtension("svg");
-				const file = await saveToVault(this.app.vault, exportDefaultFolder, filename, blob);
+				const blob = exportCanvasToSVG(
+					canvas,
+					svgTintColor || undefined,
+				);
+				const filename =
+					generateDefaultFilename() + getFileExtension("svg");
+				const file = await saveToVault(
+					this.app.vault,
+					exportDefaultFolder,
+					filename,
+					blob,
+				);
 				processingNotice.hide();
-				this.finalize(file.path, insertLinkAfterExport, closeAfterExport);
+				this.finalize(
+					file.path,
+					insertLinkAfterExport,
+					closeAfterExport,
+				);
 				return;
 			}
 
@@ -88,30 +103,43 @@ export class ExportControls {
 				png: "image/png",
 				jpg: "image/jpeg",
 			};
-			const requestedMime = formatMimeMap[exportDefaultFormat] ?? "image/jpeg";
+			const requestedMime =
+				formatMimeMap[exportDefaultFormat] ?? "image/jpeg";
 
 			const result = await compressCanvas(canvas, {
-					maxDimension: targetLongEdge,
-					quality: exportQuality,
-					outputMime: requestedMime,
-				});
+				maxDimension: targetLongEdge,
+				quality: exportQuality,
+				outputMime: requestedMime,
+			});
 
 			const filename = generateDefaultFilename() + "." + result.ext;
 			const blob = new Blob([result.buffer], { type: requestedMime });
-			const file = await saveToVault(this.app.vault, exportDefaultFolder, filename, blob);
+			const file = await saveToVault(
+				this.app.vault,
+				exportDefaultFolder,
+				filename,
+				blob,
+			);
 
 			processingNotice.hide();
-			new Notice(`Exported ${result.width}×${result.height} · ${(result.byteLength / 1024).toFixed(0)} KB → ${file.path}`, 4000);
+			new Notice(
+				`Exported ${result.width}×${result.height} · ${(result.byteLength / 1024).toFixed(0)} KB → ${file.path}`,
+				4000,
+			);
 			this.finalize(file.path, insertLinkAfterExport, closeAfterExport);
-
 		} catch (error) {
 			processingNotice.hide();
-			const message = error instanceof Error ? error.message : String(error);
+			const message =
+				error instanceof Error ? error.message : String(error);
 			new Notice(message, 5000);
 		}
 	}
 
-	private finalize(filePath: string, insertLink: boolean, closeAfter: boolean) {
+	private finalize(
+		filePath: string,
+		insertLink: boolean,
+		closeAfter: boolean,
+	) {
 		if (insertLink && this.editorReference) {
 			try {
 				const editor = this.editorReference as {

@@ -4,6 +4,7 @@
   See THIRD_PARTY_NOTICES/obsidian-scan-sketch/ for details.
 */
 
+// The file input is created in the active document so Obsidian popouts and mobile webviews get the native picker.
 export function uploadImageToCanvas(drawImageOnCanvas: (file: File) => void) {
 	const input: HTMLInputElement = activeDocument.createElement("input");
 	input.type = "file";

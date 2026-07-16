@@ -6,6 +6,7 @@
 
 import { beforeEach, vi } from "vitest";
 
+// The test harness fills in browser APIs that happy-dom does not implement closely enough for canvas work.
 // Create a shared mock context that persists across operations
 export interface MockCtx {
 	canvas: HTMLCanvasElement;

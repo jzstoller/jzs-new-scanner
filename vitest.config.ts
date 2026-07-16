@@ -1,6 +1,7 @@
-import { defineConfig } from "vitest/config";
 import * as path from "path";
+import { defineConfig } from "vitest/config";
 
+// Keep test imports aligned with the plugin's runtime aliases so services resolve the same way in Vitest.
 export default defineConfig({
 	test: {
 		globals: true,

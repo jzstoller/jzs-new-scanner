@@ -15,6 +15,7 @@ import {
 	validateFilename,
 } from "../Services/ImageExport";
 
+// These tests focus on the export boundary where Obsidian vault writes and file-safe names meet canvas output.
 describe("ImageExport", () => {
 	describe("generateDefaultFilename", () => {
 		it("should generate filename with timestamp", () => {

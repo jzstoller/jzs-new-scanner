@@ -8,6 +8,7 @@
  * Shared type definitions for the image processing services
  */
 
+// These interfaces keep the preview, export, and detection services aligned on the same canvas and crop geometry.
 /**
  * Represents a 2D point with optional dragging state
  */

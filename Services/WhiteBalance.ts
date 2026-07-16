@@ -2,6 +2,7 @@
 
 import { OperationResult } from "./types";
 
+// White balance is applied at export time so the preview canvas remains a faithful view of the captured image.
 /**
  * Automatically corrects color cast in a scanned document image using
  * percentile-based white balance. Finds the brightest ~2% of pixels per
@@ -75,7 +76,7 @@ export function performAutoWhiteBalance(
 /**
  * Applies auto white balance to a canvas in place, returning the same
  * canvas with corrected pixel data. Safe no-op wrapper for callers that
-* only have a canvas, not raw ImageData.
+ * only have a canvas, not raw ImageData.
  */
 export function applyWhiteBalanceToCanvas(
 	canvas: HTMLCanvasElement,

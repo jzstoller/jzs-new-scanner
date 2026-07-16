@@ -6,7 +6,7 @@
 
 import { App, Plugin, PluginSettingTab, Setting } from "obsidian";
 import type { ExportFormat } from "./Services/ImageExport";
-import Logger from './Services/Logger';
+import Logger from "./Services/Logger";
 
 interface ScannerSettings {
 	exportDefaultFolder: string;
@@ -36,39 +36,45 @@ export default class ScannerPlugin extends Plugin {
 	settings!: ScannerSettings;
 	logger!: Logger;
 
+	// Plugin lifecycle starts here: load settings, register commands, and wire the scanner modal into Obsidian's UI.
 	async onload() {
 		this.logger = new Logger(this.app, {
-			prefix: 'Scanner',
-			logFilePath: 'Logs/Scanner Log.md',
+			prefix: "Scanner",
+			logFilePath: "Logs/Scanner Log.md",
 		});
 
-		await this.logger.info('Plugin loaded');
+		// await this.logger.info('Plugin loaded');
 
 		await this.loadSettings();
 
-		await this.logger.info('Settings loaded');
+		// await this.logger.info("Settings loaded");
 
+		// Lazy-load the modal so the scanner UI is only loaded when the user actually opens it.
 		const openWithFilePicker = async () => {
 			try {
-				const { ScannerModal } = await import("./UI/Modals/scannerModal");
+				const { ScannerModal } =
+					await import("./UI/Modals/scannerModal");
 				const input = activeDocument.createElement("input");
 				input.type = "file";
 				input.accept = "image/*";
 				input.onchange = () => {
 					const file = input.files?.[0];
-					this.logger.info('File picked');
+					this.logger.info("File picked");
 					new ScannerModal(this.app, this, file ?? null).open();
 					input.value = "";
 				};
 				input.click();
 			} catch (err) {
-				await this.logger.error(`Failed to open scanner: ${String(err)}`);
+				await this.logger.error(
+					`Failed to open scanner: ${String(err)}`,
+				);
 			}
 		};
 
+		// Ribbon and command palette both route through the same file-picker entry point.
 		this.addRibbonIcon("scan", "Simple Scanner2", openWithFilePicker);
 
-		await this.logger.info('Added Ribbon Icon');
+		await this.logger.info("Added Ribbon Icon");
 
 		this.addCommand({
 			id: "open-scanner2",
@@ -80,17 +86,22 @@ export default class ScannerPlugin extends Plugin {
 		this.addSettingTab(new ScannerSettingTab(this.app, this));
 	}
 
-	onunload() { void this.logger.info('Plugin unloaded'); }
+	onunload() {
+		//void this.logger.info('Plugin unloaded');
+	}
 
 	async loadSettings() {
 		try {
 			this.settings = Object.assign(
 				{},
 				DEFAULT_SETTINGS,
-				((await this.loadData()) as Partial<ScannerSettings> | null) ?? {},
+				((await this.loadData()) as Partial<ScannerSettings> | null) ??
+					{},
 			);
 		} catch (err) {
-			await this.logger.error(`Failed to load settings, using defaults: ${String(err)}`);
+			await this.logger.error(
+				`Failed to load settings, using defaults: ${String(err)}`,
+			);
 			this.settings = { ...DEFAULT_SETTINGS };
 		}
 	}

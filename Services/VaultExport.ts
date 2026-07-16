@@ -6,6 +6,7 @@
 import { TFile, TFolder, Vault } from "obsidian";
 import { blobToArrayBuffer } from "./ImageExport";
 
+// Obsidian's vault API expects the destination folder to exist before createBinary is called.
 /**
  * Normalize folder path for vault operations
  * Removes leading/trailing slashes and extra whitespace

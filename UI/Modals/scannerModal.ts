@@ -11,6 +11,7 @@ import { ExportControls } from "UI/Components/ExportControls";
 import { ImagePreview } from "UI/Components/ImagePreview";
 import type ScannerPlugin from "../../main";
 
+// The modal ties together file selection, page detection, crop editing, and export controls in one Obsidian dialog.
 export class ScannerModal extends Modal {
 	private plugin: ScannerPlugin;
 	private initialFile: File | null;
@@ -56,7 +57,7 @@ export class ScannerModal extends Modal {
 	onOpen() {
 		try {
 			this.canvas.setup();
-			void this.plugin.logger.info('Canvas setup');
+			void this.plugin.logger.info("Canvas setup");
 		} catch (error) {
 			const message =
 				error instanceof Error ? error.message : String(error);
@@ -126,6 +127,7 @@ export class ScannerModal extends Modal {
 			return;
 		}
 
+		// Detection runs on the preview canvas, then results are scaled back into the CSS-pixel space used by the overlay.
 		// Get image data for page detection
 		const previewCanvas = this.canvas.getCanvas();
 		const ctx = previewCanvas.getContext("2d", {
@@ -162,7 +164,7 @@ export class ScannerModal extends Modal {
 				scaledCorners,
 			);
 			if (success) {
-				void this.plugin.logger.info('Detected corners');
+				void this.plugin.logger.info("Detected corners");
 				this.buttonWrapper.hide();
 				this.confirmButtonWrapper.show();
 			} else {
@@ -179,10 +181,7 @@ export class ScannerModal extends Modal {
 				this.buttonWrapper.hide();
 				this.confirmButtonWrapper.show();
 			} else {
-				new Notice(
-					"✗ No page corners detected. " + message,
-					5000,
-				);
+				new Notice("✗ No page corners detected. " + message, 5000);
 			}
 		}
 	}
@@ -224,6 +223,8 @@ export class ScannerModal extends Modal {
 			if (result.success) {
 				// Show success message
 				new Notice(result.message, 3000);
+
+				void this.plugin.logger.info("Processed perspective crop");
 
 				// Wait a brief moment for the crop to render
 				await new Promise((resolve) => window.setTimeout(resolve, 100));

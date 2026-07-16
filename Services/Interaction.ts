@@ -4,6 +4,7 @@
   See THIRD_PARTY_NOTICES/obsidian-scan-sketch/ for details.
 */
 
+// Hit-testing stays small and stateless because the preview already owns the crop-handle geometry.
 /**
  * Check if a point is inside a circular shape
  * @param mouseX - X coordinate of the mouse click

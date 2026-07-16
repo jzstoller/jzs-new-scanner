@@ -11,6 +11,7 @@ import {
 	PlaceholderConfig,
 } from "./types";
 
+// Rendering stays in this helper layer so ImagePreview can focus on interaction state and canvas sizing.
 /**
  * Clear the entire canvas
  * @param ctx - Canvas rendering context

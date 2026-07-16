@@ -30,15 +30,21 @@ const DEFAULTS = {
 	backgroundColor: "#ffffff",
 };
 
+// Raster exports normalize size, flatten transparency, and encode in one place so the modal can stay simple.
 export async function compressCanvas(
 	canvas: HTMLCanvasElement,
 	options: CompressOptions = {},
 ): Promise<CompressResult> {
-	const opts = { ...DEFAULTS, outputMime: "image/jpeg" as CompressOptions["outputMime"], ...options };
+	const opts = {
+		...DEFAULTS,
+		outputMime: "image/jpeg" as CompressOptions["outputMime"],
+		...options,
+	};
 
 	const { width: srcW, height: srcH } = canvas;
 	const longSide = Math.max(srcW, srcH);
-	const scale = longSide > opts.maxDimension ? opts.maxDimension / longSide : 1;
+	const scale =
+		longSide > opts.maxDimension ? opts.maxDimension / longSide : 1;
 	const outW = Math.max(1, Math.round(srcW * scale));
 	const outH = Math.max(1, Math.round(srcH * scale));
 
@@ -58,13 +64,26 @@ export async function compressCanvas(
 	const outBlob = await canvasToBlob(out, requestedMime, opts.quality);
 
 	const buffer = await outBlob.arrayBuffer();
-	return { buffer, ext: mimeToExt(requestedMime), width: outW, height: outH, byteLength: buffer.byteLength };
+	return {
+		buffer,
+		ext: mimeToExt(requestedMime),
+		width: outW,
+		height: outH,
+		byteLength: buffer.byteLength,
+	};
 }
 
-function canvasToBlob(canvas: HTMLCanvasElement, mime: string, quality: number): Promise<Blob> {
+function canvasToBlob(
+	canvas: HTMLCanvasElement,
+	mime: string,
+	quality: number,
+): Promise<Blob> {
 	return new Promise((resolve, reject) => {
 		canvas.toBlob(
-			(blob) => (blob ? resolve(blob) : reject(new Error("canvas.toBlob returned null"))),
+			(blob) =>
+				blob
+					? resolve(blob)
+					: reject(new Error("canvas.toBlob returned null")),
 			mime,
 			quality,
 		);
@@ -73,8 +92,11 @@ function canvasToBlob(canvas: HTMLCanvasElement, mime: string, quality: number):
 
 export function mimeToExt(mime: string): string {
 	switch (mime) {
-		case "image/jpeg": return "jpg";
-		case "image/png": return "png";
-		default: return "jpg";
+		case "image/jpeg":
+			return "jpg";
+		case "image/png":
+			return "png";
+		default:
+			return "jpg";
 	}
 }

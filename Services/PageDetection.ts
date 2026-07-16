@@ -4,6 +4,7 @@ export const PAGE_DETECTION_VERSION = "2026-06-14T11:25 ET";
 
 const DETECTION_MAX_DIM = 800;
 
+// The detector trades full-resolution work for speed by operating on a downscaled copy and then scaling the result back.
 /**
  * Attempts to detect the four corners of a page/document within the image.
  * Returns points in TL, TR, BL, BR order in full-resolution coordinates,
@@ -15,7 +16,12 @@ const DETECTION_MAX_DIM = 800;
  *   Convex hull → Quad approx → Validate → Scale back up
  */
 export function detectPageCorners(imageData: ImageData): CropPoint[] | null {
-	const { data: scaled, scale, width, height } = downscale(imageData, DETECTION_MAX_DIM);
+	const {
+		data: scaled,
+		scale,
+		width,
+		height,
+	} = downscale(imageData, DETECTION_MAX_DIM);
 
 	// Paper mask: low saturation AND high brightness = paper/white regions
 	const { saturation, value } = toHSVChannels(scaled, width, height);
@@ -35,7 +41,14 @@ export function detectPageCorners(imageData: ImageData): CropPoint[] | null {
 	edges = dilate3x3(edges, width, height);
 
 	const contours = findContours(edges, width, height);
-	const result = findBestQuad(contours, paperMask, edges, width, height, scale);
+	const result = findBestQuad(
+		contours,
+		paperMask,
+		edges,
+		width,
+		height,
+		scale,
+	);
 	return result;
 }
 
@@ -45,7 +58,7 @@ function findBestQuad(
 	edges: Uint8Array,
 	width: number,
 	height: number,
-	scale: number
+	scale: number,
 ): CropPoint[] | null {
 	const candidates = contours
 		.map((c) => ({ contour: c, area: contourArea(c) }))
@@ -66,14 +79,26 @@ function findBestQuad(
 
 		// Reject quads smaller than 30% of image area (e.g. credit cards on page)
 		const quadW = Math.max(
-			Math.hypot(ordered[1].x - ordered[0].x, ordered[1].y - ordered[0].y),
-			Math.hypot(ordered[2].x - ordered[3].x, ordered[2].y - ordered[3].y)
+			Math.hypot(
+				ordered[1].x - ordered[0].x,
+				ordered[1].y - ordered[0].y,
+			),
+			Math.hypot(
+				ordered[2].x - ordered[3].x,
+				ordered[2].y - ordered[3].y,
+			),
 		);
 		const quadH = Math.max(
-			Math.hypot(ordered[3].x - ordered[0].x, ordered[3].y - ordered[0].y),
-			Math.hypot(ordered[2].x - ordered[1].x, ordered[2].y - ordered[1].y)
+			Math.hypot(
+				ordered[3].x - ordered[0].x,
+				ordered[3].y - ordered[0].y,
+			),
+			Math.hypot(
+				ordered[2].x - ordered[1].x,
+				ordered[2].y - ordered[1].y,
+			),
 		);
-		if ((quadW * quadH) / (width * height) < 0.30) continue;
+		if ((quadW * quadH) / (width * height) < 0.3) continue;
 
 		if (!quadOverlapsPaper(ordered, paperMask, width, height)) continue;
 		if (!cornersHaveEdgeSupport(ordered, edges, width, height)) continue;
@@ -81,10 +106,26 @@ function findBestQuad(
 		// orderCorners returns [TL, TR, BR, BL] but we need [TL, TR, BL, BR]
 		// Swap the bottom two corners to match expected format
 		return [
-			{ x: ordered[0].x / scale, y: ordered[0].y / scale, isDragging: false }, // TL
-			{ x: ordered[1].x / scale, y: ordered[1].y / scale, isDragging: false }, // TR
-			{ x: ordered[3].x / scale, y: ordered[3].y / scale, isDragging: false }, // BL
-			{ x: ordered[2].x / scale, y: ordered[2].y / scale, isDragging: false }, // BR
+			{
+				x: ordered[0].x / scale,
+				y: ordered[0].y / scale,
+				isDragging: false,
+			}, // TL
+			{
+				x: ordered[1].x / scale,
+				y: ordered[1].y / scale,
+				isDragging: false,
+			}, // TR
+			{
+				x: ordered[3].x / scale,
+				y: ordered[3].y / scale,
+				isDragging: false,
+			}, // BL
+			{
+				x: ordered[2].x / scale,
+				y: ordered[2].y / scale,
+				isDragging: false,
+			}, // BR
 		];
 	}
 	return null;
@@ -94,7 +135,7 @@ function findBestQuad(
 
 function downscale(
 	imageData: ImageData,
-	maxDim: number
+	maxDim: number,
 ): { data: Uint8ClampedArray; scale: number; width: number; height: number } {
 	const { width: w, height: h, data } = imageData;
 	const scale = Math.min(1, maxDim / Math.max(w, h));
@@ -119,10 +160,17 @@ function downscale(
 	return { data: out, scale, width, height };
 }
 
-function toGrayscale(data: Uint8ClampedArray, width: number, height: number): Float32Array {
+function toGrayscale(
+	data: Uint8ClampedArray,
+	width: number,
+	height: number,
+): Float32Array {
 	const gray = new Float32Array(width * height);
 	for (let i = 0; i < width * height; i++) {
-		gray[i] = 0.299 * data[i * 4] + 0.587 * data[i * 4 + 1] + 0.114 * data[i * 4 + 2];
+		gray[i] =
+			0.299 * data[i * 4] +
+			0.587 * data[i * 4 + 1] +
+			0.114 * data[i * 4 + 2];
 	}
 	return gray;
 }
@@ -130,7 +178,7 @@ function toGrayscale(data: Uint8ClampedArray, width: number, height: number): Fl
 function toHSVChannels(
 	data: Uint8ClampedArray,
 	width: number,
-	height: number
+	height: number,
 ): { saturation: Uint8Array; value: Uint8Array } {
 	const saturation = new Uint8Array(width * height);
 	const value = new Uint8Array(width * height);
@@ -146,14 +194,23 @@ function toHSVChannels(
 	return { saturation, value };
 }
 
-function medianFilter5x5(src: Float32Array, width: number, height: number): Float32Array {
+function medianFilter5x5(
+	src: Float32Array,
+	width: number,
+	height: number,
+): Float32Array {
 	const out = new Float32Array(width * height);
 	for (let y = 0; y < height; y++) {
 		for (let x = 0; x < width; x++) {
 			const window: number[] = [];
 			for (let ky = -2; ky <= 2; ky++)
 				for (let kx = -2; kx <= 2; kx++)
-					window.push(src[clamp(y + ky, 0, height - 1) * width + clamp(x + kx, 0, width - 1)]);
+					window.push(
+						src[
+							clamp(y + ky, 0, height - 1) * width +
+								clamp(x + kx, 0, width - 1)
+						],
+					);
 			window.sort((a, b) => a - b);
 			out[y * width + x] = window[12];
 		}
@@ -161,15 +218,27 @@ function medianFilter5x5(src: Float32Array, width: number, height: number): Floa
 	return out;
 }
 
-function gaussianBlur5x5(src: Float32Array, width: number, height: number): Float32Array {
-	const kernel = [2, 4, 5, 4, 2, 4, 9, 12, 9, 4, 5, 12, 15, 12, 5, 4, 9, 12, 9, 4, 2, 4, 5, 4, 2];
+function gaussianBlur5x5(
+	src: Float32Array,
+	width: number,
+	height: number,
+): Float32Array {
+	const kernel = [
+		2, 4, 5, 4, 2, 4, 9, 12, 9, 4, 5, 12, 15, 12, 5, 4, 9, 12, 9, 4, 2, 4,
+		5, 4, 2,
+	];
 	const out = new Float32Array(width * height);
 	for (let y = 0; y < height; y++) {
 		for (let x = 0; x < width; x++) {
-			let sum = 0, k = 0;
+			let sum = 0,
+				k = 0;
 			for (let ky = -2; ky <= 2; ky++)
 				for (let kx = -2; kx <= 2; kx++)
-					sum += src[clamp(y + ky, 0, height - 1) * width + clamp(x + kx, 0, width - 1)] * kernel[k++];
+					sum +=
+						src[
+							clamp(y + ky, 0, height - 1) * width +
+								clamp(x + kx, 0, width - 1)
+						] * kernel[k++];
 			out[y * width + x] = sum / 159;
 		}
 	}
@@ -178,21 +247,37 @@ function gaussianBlur5x5(src: Float32Array, width: number, height: number): Floa
 
 // ---------- Binary ops ----------
 
-function thresholdAbove(src: Uint8Array, width: number, height: number, value: number): Uint8Array {
+function thresholdAbove(
+	src: Uint8Array,
+	width: number,
+	height: number,
+	value: number,
+): Uint8Array {
 	const out = new Uint8Array(width * height);
 	for (let i = 0; i < src.length; i++) out[i] = src[i] >= value ? 255 : 0;
 	return out;
 }
 
-function thresholdBelow(src: Uint8Array, width: number, height: number, value: number): Uint8Array {
+function thresholdBelow(
+	src: Uint8Array,
+	width: number,
+	height: number,
+	value: number,
+): Uint8Array {
 	const out = new Uint8Array(width * height);
 	for (let i = 0; i < src.length; i++) out[i] = src[i] < value ? 255 : 0;
 	return out;
 }
 
-function bitwiseAnd(a: Uint8Array, b: Uint8Array, width: number, height: number): Uint8Array {
+function bitwiseAnd(
+	a: Uint8Array,
+	b: Uint8Array,
+	width: number,
+	height: number,
+): Uint8Array {
 	const out = new Uint8Array(width * height);
-	for (let i = 0; i < out.length; i++) out[i] = a[i] !== 0 && b[i] !== 0 ? 255 : 0;
+	for (let i = 0; i < out.length; i++)
+		out[i] = a[i] !== 0 && b[i] !== 0 ? 255 : 0;
 	return out;
 }
 
@@ -203,9 +288,17 @@ function dilate3x3(src: Uint8Array, width: number, height: number): Uint8Array {
 			let any = false;
 			for (let ky = -1; ky <= 1 && !any; ky++)
 				for (let kx = -1; kx <= 1; kx++) {
-					const sx = x + kx, sy = y + ky;
-					if (sx >= 0 && sx < width && sy >= 0 && sy < height && src[sy * width + sx] !== 0) {
-						any = true; break;
+					const sx = x + kx,
+						sy = y + ky;
+					if (
+						sx >= 0 &&
+						sx < width &&
+						sy >= 0 &&
+						sy < height &&
+						src[sy * width + sx] !== 0
+					) {
+						any = true;
+						break;
 					}
 				}
 			out[y * width + x] = any ? 255 : 0;
@@ -216,18 +309,30 @@ function dilate3x3(src: Uint8Array, width: number, height: number): Uint8Array {
 
 // ---------- Edge detection ----------
 
-function sobel(src: Float32Array, width: number, height: number): { magnitude: Float32Array; direction: Float32Array } {
+function sobel(
+	src: Float32Array,
+	width: number,
+	height: number,
+): { magnitude: Float32Array; direction: Float32Array } {
 	const magnitude = new Float32Array(width * height);
 	const direction = new Float32Array(width * height);
 	const gx = [-1, 0, 1, -2, 0, 2, -1, 0, 1];
 	const gy = [-1, -2, -1, 0, 0, 0, 1, 2, 1];
 	for (let y = 0; y < height; y++) {
 		for (let x = 0; x < width; x++) {
-			let sx = 0, sy = 0, k = 0;
+			let sx = 0,
+				sy = 0,
+				k = 0;
 			for (let ky = -1; ky <= 1; ky++)
 				for (let kx = -1; kx <= 1; kx++) {
-					const v = src[clamp(y + ky, 0, height - 1) * width + clamp(x + kx, 0, width - 1)];
-					sx += v * gx[k]; sy += v * gy[k]; k++;
+					const v =
+						src[
+							clamp(y + ky, 0, height - 1) * width +
+								clamp(x + kx, 0, width - 1)
+						];
+					sx += v * gx[k];
+					sy += v * gy[k];
+					k++;
 				}
 			const idx = y * width + x;
 			magnitude[idx] = Math.sqrt(sx * sx + sy * sy);
@@ -237,7 +342,12 @@ function sobel(src: Float32Array, width: number, height: number): { magnitude: F
 	return { magnitude, direction };
 }
 
-function nonMaxSuppression(magnitude: Float32Array, direction: Float32Array, width: number, height: number): Float32Array {
+function nonMaxSuppression(
+	magnitude: Float32Array,
+	direction: Float32Array,
+	width: number,
+	height: number,
+): Float32Array {
 	const out = new Float32Array(width * height);
 	for (let y = 1; y < height - 1; y++) {
 		for (let x = 1; x < width - 1; x++) {
@@ -245,10 +355,22 @@ function nonMaxSuppression(magnitude: Float32Array, direction: Float32Array, wid
 			let angle = direction[idx] * (180 / Math.PI);
 			if (angle < 0) angle += 180;
 			let n1: number, n2: number;
-			if ((angle >= 0 && angle < 22.5) || (angle >= 157.5 && angle <= 180)) { n1 = magnitude[idx - 1]; n2 = magnitude[idx + 1]; }
-			else if (angle >= 22.5 && angle < 67.5) { n1 = magnitude[idx - width + 1]; n2 = magnitude[idx + width - 1]; }
-			else if (angle >= 67.5 && angle < 112.5) { n1 = magnitude[idx - width]; n2 = magnitude[idx + width]; }
-			else { n1 = magnitude[idx - width - 1]; n2 = magnitude[idx + width + 1]; }
+			if (
+				(angle >= 0 && angle < 22.5) ||
+				(angle >= 157.5 && angle <= 180)
+			) {
+				n1 = magnitude[idx - 1];
+				n2 = magnitude[idx + 1];
+			} else if (angle >= 22.5 && angle < 67.5) {
+				n1 = magnitude[idx - width + 1];
+				n2 = magnitude[idx + width - 1];
+			} else if (angle >= 67.5 && angle < 112.5) {
+				n1 = magnitude[idx - width];
+				n2 = magnitude[idx + width];
+			} else {
+				n1 = magnitude[idx - width - 1];
+				n2 = magnitude[idx + width + 1];
+			}
 			const m = magnitude[idx];
 			out[idx] = m >= n1 && m >= n2 ? m : 0;
 		}
@@ -256,8 +378,15 @@ function nonMaxSuppression(magnitude: Float32Array, direction: Float32Array, wid
 	return out;
 }
 
-function hysteresisThreshold(src: Float32Array, width: number, height: number, low: number, high: number): Uint8Array {
-	const strong = 255, weak = 75;
+function hysteresisThreshold(
+	src: Float32Array,
+	width: number,
+	height: number,
+	low: number,
+	high: number,
+): Uint8Array {
+	const strong = 255,
+		weak = 75;
 	const out = new Uint8Array(width * height);
 	for (let i = 0; i < src.length; i++) {
 		if (src[i] >= high) out[i] = strong;
@@ -272,7 +401,10 @@ function hysteresisThreshold(src: Float32Array, width: number, height: number, l
 				if (out[idx] !== weak) continue;
 				for (let ky = -1; ky <= 1; ky++)
 					for (let kx = -1; kx <= 1; kx++)
-						if (out[(y + ky) * width + (x + kx)] === strong) { out[idx] = strong; changed = true; }
+						if (out[(y + ky) * width + (x + kx)] === strong) {
+							out[idx] = strong;
+							changed = true;
+						}
 			}
 		}
 	}
@@ -282,7 +414,11 @@ function hysteresisThreshold(src: Float32Array, width: number, height: number, l
 
 // ---------- Contours ----------
 
-function findContours(edges: Uint8Array, width: number, height: number): Point[][] {
+function findContours(
+	edges: Uint8Array,
+	width: number,
+	height: number,
+): Point[][] {
 	const visited = new Uint8Array(width * height);
 	const contours: Point[][] = [];
 	for (let y = 0; y < height; y++) {
@@ -295,15 +431,21 @@ function findContours(edges: Uint8Array, width: number, height: number): Point[]
 			while (stack.length > 0) {
 				const cur = stack.pop();
 				if (cur === undefined) break;
-				const cx = cur % width, cy = Math.floor(cur / width);
+				const cx = cur % width,
+					cy = Math.floor(cur / width);
 				component.push({ x: cx, y: cy });
 				for (let ny = -1; ny <= 1; ny++)
 					for (let nx = -1; nx <= 1; nx++) {
 						if (nx === 0 && ny === 0) continue;
-						const px = cx + nx, py = cy + ny;
-						if (px < 0 || px >= width || py < 0 || py >= height) continue;
+						const px = cx + nx,
+							py = cy + ny;
+						if (px < 0 || px >= width || py < 0 || py >= height)
+							continue;
 						const pidx = py * width + px;
-						if (edges[pidx] !== 0 && !visited[pidx]) { visited[pidx] = 1; stack.push(pidx); }
+						if (edges[pidx] !== 0 && !visited[pidx]) {
+							visited[pidx] = 1;
+							stack.push(pidx);
+						}
 					}
 			}
 			if (component.length > 60) contours.push(component);
@@ -317,7 +459,8 @@ function contourArea(points: Point[]): number {
 	if (hull.length < 3) return 0;
 	let area = 0;
 	for (let i = 0; i < hull.length; i++) {
-		const a = hull[i], b = hull[(i + 1) % hull.length];
+		const a = hull[i],
+			b = hull[(i + 1) % hull.length];
 		area += a.x * b.y - b.x * a.y;
 	}
 	return Math.abs(area) / 2;
@@ -326,7 +469,8 @@ function contourArea(points: Point[]): number {
 function perimeter(points: Point[]): number {
 	let total = 0;
 	for (let i = 0; i < points.length; i++) {
-		const a = points[i], b = points[(i + 1) % points.length];
+		const a = points[i],
+			b = points[(i + 1) % points.length];
 		total += Math.hypot(b.x - a.x, b.y - a.y);
 	}
 	return total;
@@ -334,7 +478,11 @@ function perimeter(points: Point[]): number {
 
 function approxPolyDP(points: Point[], epsilon: number): Point[] {
 	if (points.length < 3) return points;
-	const { index, distance } = findFarthestPoint(points, points[0], points[points.length - 1]);
+	const { index, distance } = findFarthestPoint(
+		points,
+		points[0],
+		points[points.length - 1],
+	);
 	if (distance > epsilon) {
 		const left = approxPolyDP(points.slice(0, index + 1), epsilon);
 		const right = approxPolyDP(points.slice(index), epsilon);
@@ -343,44 +491,68 @@ function approxPolyDP(points: Point[], epsilon: number): Point[] {
 	return [points[0], points[points.length - 1]];
 }
 
-function findFarthestPoint(points: Point[], lineStart: Point, lineEnd: Point): { index: number; distance: number } {
-	let maxDist = 0, maxIdx = 0;
+function findFarthestPoint(
+	points: Point[],
+	lineStart: Point,
+	lineEnd: Point,
+): { index: number; distance: number } {
+	let maxDist = 0,
+		maxIdx = 0;
 	for (let i = 1; i < points.length - 1; i++) {
 		const d = pointToLineDistance(points[i], lineStart, lineEnd);
-		if (d > maxDist) { maxDist = d; maxIdx = i; }
+		if (d > maxDist) {
+			maxDist = d;
+			maxIdx = i;
+		}
 	}
 	return { index: maxIdx, distance: maxDist };
 }
 
 function pointToLineDistance(p: Point, a: Point, b: Point): number {
-	const dx = b.x - a.x, dy = b.y - a.y;
+	const dx = b.x - a.x,
+		dy = b.y - a.y;
 	const len = Math.hypot(dx, dy);
 	if (len === 0) return Math.hypot(p.x - a.x, p.y - a.y);
 	return Math.abs((p.x - a.x) * dy - (p.y - a.y) * dx) / len;
 }
 
 function convexHull(points: Point[]): Point[] {
-	const sorted = [...points].sort((a, b) => a.x === b.x ? a.y - b.y : a.x - b.x);
+	const sorted = [...points].sort((a, b) =>
+		a.x === b.x ? a.y - b.y : a.x - b.x,
+	);
 	if (sorted.length <= 2) return sorted;
-	const cross = (o: Point, a: Point, b: Point) => (a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x);
+	const cross = (o: Point, a: Point, b: Point) =>
+		(a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x);
 	const lower: Point[] = [];
 	for (const p of sorted) {
-		while (lower.length >= 2 && cross(lower[lower.length - 2], lower[lower.length - 1], p) <= 0) lower.pop();
+		while (
+			lower.length >= 2 &&
+			cross(lower[lower.length - 2], lower[lower.length - 1], p) <= 0
+		)
+			lower.pop();
 		lower.push(p);
 	}
 	const upper: Point[] = [];
 	for (let i = sorted.length - 1; i >= 0; i--) {
 		const p = sorted[i];
-		while (upper.length >= 2 && cross(upper[upper.length - 2], upper[upper.length - 1], p) <= 0) upper.pop();
+		while (
+			upper.length >= 2 &&
+			cross(upper[upper.length - 2], upper[upper.length - 1], p) <= 0
+		)
+			upper.pop();
 		upper.push(p);
 	}
-	upper.pop(); lower.pop();
+	upper.pop();
+	lower.pop();
 	return [...lower, ...upper];
 }
 
 function boundingQuadFromHull(hull: Point[]): Point[] {
 	if (hull.length < 4) return [];
-	let tl = hull[0], br = hull[0], tr = hull[0], bl = hull[0];
+	let tl = hull[0],
+		br = hull[0],
+		tr = hull[0],
+		bl = hull[0];
 	for (const p of hull) {
 		if (p.x + p.y < tl.x + tl.y) tl = p;
 		if (p.x + p.y > br.x + br.y) br = p;
@@ -406,18 +578,28 @@ function orderCorners(points: Point[], imgWidth = 0, imgHeight = 0): Point[] {
 		const result: Point[] = [];
 		const used = new Set<number>();
 		for (const ic of imageCorners) {
-			let bestDist = Infinity, bestIdx = -1;
+			let bestDist = Infinity,
+				bestIdx = -1;
 			for (let i = 0; i < points.length; i++) {
 				if (used.has(i)) continue;
 				const d = Math.hypot(points[i].x - ic.x, points[i].y - ic.y);
-				if (d < bestDist) { bestDist = d; bestIdx = i; }
+				if (d < bestDist) {
+					bestDist = d;
+					bestIdx = i;
+				}
 			}
-			if (bestIdx >= 0) { result.push(points[bestIdx]); used.add(bestIdx); }
+			if (bestIdx >= 0) {
+				result.push(points[bestIdx]);
+				used.add(bestIdx);
+			}
 		}
 		if (result.length === 4) return result;
 	}
 	// Fallback: sum/diff extremes
-	let tl = points[0], br = points[0], tr = points[0], bl = points[0];
+	let tl = points[0],
+		br = points[0],
+		tr = points[0],
+		bl = points[0];
 	for (const p of points) {
 		if (p.x + p.y < tl.x + tl.y) tl = p;
 		if (p.x + p.y > br.x + br.y) br = p;
@@ -439,37 +621,62 @@ function isValidQuad(ordered: Point[]): boolean {
 			if (dist(ordered[i], ordered[j]) < 10) return false;
 
 	const [tl, tr, br, bl] = ordered;
-	const topDist = dist(tl, tr), bottomDist = dist(bl, br);
-	const leftDist = dist(tl, bl), rightDist = dist(tr, br);
+	const topDist = dist(tl, tr),
+		bottomDist = dist(bl, br);
+	const leftDist = dist(tl, bl),
+		rightDist = dist(tr, br);
 	const aspectRatio = (topDist + bottomDist) / (leftDist + rightDist);
 	if (aspectRatio < 0.3 || aspectRatio > 3.0) return false;
-	if (Math.max(topDist, bottomDist) / Math.min(topDist, bottomDist) > 1.5) return false;
-	if (Math.max(leftDist, rightDist) / Math.min(leftDist, rightDist) > 1.5) return false;
+	if (Math.max(topDist, bottomDist) / Math.min(topDist, bottomDist) > 1.5)
+		return false;
+	if (Math.max(leftDist, rightDist) / Math.min(leftDist, rightDist) > 1.5)
+		return false;
 	if (Math.min(topDist, bottomDist, leftDist, rightDist) < 20) return false;
 	return true;
 }
 
-function quadOverlapsPaper(points: Point[], paperMask: Uint8Array, width: number, height: number): boolean {
-	const xs = points.map((p) => p.x), ys = points.map((p) => p.y);
-	const x0 = Math.max(0, Math.min(...xs)), y0 = Math.max(0, Math.min(...ys));
-	const x1 = Math.min(width - 1, Math.max(...xs)), y1 = Math.min(height - 1, Math.max(...ys));
-	let paperPixels = 0, total = 0;
+function quadOverlapsPaper(
+	points: Point[],
+	paperMask: Uint8Array,
+	width: number,
+	height: number,
+): boolean {
+	const xs = points.map((p) => p.x),
+		ys = points.map((p) => p.y);
+	const x0 = Math.max(0, Math.min(...xs)),
+		y0 = Math.max(0, Math.min(...ys));
+	const x1 = Math.min(width - 1, Math.max(...xs)),
+		y1 = Math.min(height - 1, Math.max(...ys));
+	let paperPixels = 0,
+		total = 0;
 	for (let y = y0; y <= y1; y += 10)
 		for (let x = x0; x <= x1; x += 10) {
-			if (paperMask[Math.round(y) * width + Math.round(x)] > 0) paperPixels++;
+			if (paperMask[Math.round(y) * width + Math.round(x)] > 0)
+				paperPixels++;
 			total++;
 		}
 	return total > 0 && paperPixels / total > 0.15;
 }
 
-function cornersHaveEdgeSupport(ordered: Point[], edges: Uint8Array, width: number, height: number, radius = 6): boolean {
+function cornersHaveEdgeSupport(
+	ordered: Point[],
+	edges: Uint8Array,
+	width: number,
+	height: number,
+	radius = 6,
+): boolean {
 	for (const p of ordered) {
-		const px = Math.round(p.x), py = Math.round(p.y);
+		const px = Math.round(p.x),
+			py = Math.round(p.y);
 		let found = false;
 		for (let dy = -radius; dy <= radius && !found; dy++)
 			for (let dx = -radius; dx <= radius; dx++) {
-				const sx = clamp(px + dx, 0, width - 1), sy = clamp(py + dy, 0, height - 1);
-				if (edges[sy * width + sx] !== 0) { found = true; break; }
+				const sx = clamp(px + dx, 0, width - 1),
+					sy = clamp(py + dy, 0, height - 1);
+				if (edges[sy * width + sx] !== 0) {
+					found = true;
+					break;
+				}
 			}
 		if (!found) return false;
 	}

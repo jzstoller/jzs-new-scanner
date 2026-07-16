@@ -22,7 +22,6 @@ import {
 	drawImageWithRotation,
 	performPerspectiveCrop,
 } from "Services/ImageTransform";
-import { performAutoWhiteBalance } from "Services/WhiteBalance";
 import { findCropPointAtPosition } from "Services/Interaction";
 import {
 	CropPoint,
@@ -32,6 +31,7 @@ import {
 	PlaceholderConfig,
 } from "Services/types";
 
+// ImagePreview owns the interactive canvas state so the modal only orchestrates loading, cropping, and export actions.
 export class ImagePreview {
 	private parent: HTMLElement;
 	private canvas: HTMLCanvasElement;

@@ -8,6 +8,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ImagePreview } from "../UI/Components/ImagePreview";
 import type { MockCtx } from "./setup";
 
+// The preview tests exercise the canvas interaction layer that Obsidian users actually manipulate.
 describe("ImagePreview", () => {
 	let parent: HTMLElement;
 	let canvas: HTMLCanvasElement;

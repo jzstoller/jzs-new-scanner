@@ -1,15 +1,16 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import {
-	initializeCropPoints,
-	updateCropPoint,
-	setCropPointDragging,
-	validateCropPoints,
 	calculateDistance,
 	calculateOutputDimensions,
+	initializeCropPoints,
 	orderCropPoints,
+	setCropPointDragging,
+	updateCropPoint,
+	validateCropPoints,
 } from "../Services/CropPointManager";
 import { CropPoint } from "../Services/types";
 
+// These tests cover the geometry helpers that the preview and perspective transform both depend on.
 describe("CropPointManager", () => {
 	describe("initializeCropPoints", () => {
 		it("should create 4 crop points at rectangle corners", () => {
@@ -27,7 +28,7 @@ describe("CropPointManager", () => {
 			const rect = { x: 0, y: 0, width: 50, height: 50 };
 			const points = initializeCropPoints(rect);
 
-			points.forEach(point => {
+			points.forEach((point) => {
 				expect(point.isDragging).toBe(false);
 			});
 		});
@@ -94,7 +95,7 @@ describe("CropPointManager", () => {
 		it("should clear all dragging states when index is -1", () => {
 			const updated = setCropPointDragging(points, -1, false);
 
-			updated.forEach(point => {
+			updated.forEach((point) => {
 				expect(point.isDragging).toBe(false);
 			});
 		});
@@ -183,10 +184,10 @@ describe("CropPointManager", () => {
 	describe("calculateOutputDimensions", () => {
 		it("should calculate dimensions from crop points", () => {
 			const points: CropPoint[] = [
-				{ x: 0, y: 0, isDragging: false },     // TL
-				{ x: 100, y: 0, isDragging: false },   // TR
-				{ x: 0, y: 80, isDragging: false },    // BL
-				{ x: 100, y: 80, isDragging: false },  // BR
+				{ x: 0, y: 0, isDragging: false }, // TL
+				{ x: 100, y: 0, isDragging: false }, // TR
+				{ x: 0, y: 80, isDragging: false }, // BL
+				{ x: 100, y: 80, isDragging: false }, // BR
 			];
 
 			const dimensions = calculateOutputDimensions(points, 1);
@@ -220,9 +221,9 @@ describe("CropPointManager", () => {
 
 		it("should use maximum dimensions for trapezoid", () => {
 			const points: CropPoint[] = [
-				{ x: 0, y: 0, isDragging: false },     // TL
-				{ x: 80, y: 0, isDragging: false },    // TR (narrower top)
-				{ x: 0, y: 100, isDragging: false },   // BL
+				{ x: 0, y: 0, isDragging: false }, // TL
+				{ x: 80, y: 0, isDragging: false }, // TR (narrower top)
+				{ x: 0, y: 100, isDragging: false }, // BL
 				{ x: 100, y: 100, isDragging: false }, // BR (wider bottom)
 			];
 
@@ -237,18 +238,18 @@ describe("CropPointManager", () => {
 			// Points in random order
 			const points: CropPoint[] = [
 				{ x: 100, y: 100, isDragging: false }, // BR
-				{ x: 0, y: 0, isDragging: false },     // TL
-				{ x: 100, y: 0, isDragging: false },   // TR
-				{ x: 0, y: 100, isDragging: false },   // BL
+				{ x: 0, y: 0, isDragging: false }, // TL
+				{ x: 100, y: 0, isDragging: false }, // TR
+				{ x: 0, y: 100, isDragging: false }, // BL
 			];
 
 			const ordered = orderCropPoints(points);
 
-			expect(ordered[0].x).toBe(0);   // TL
+			expect(ordered[0].x).toBe(0); // TL
 			expect(ordered[0].y).toBe(0);
 			expect(ordered[1].x).toBe(100); // TR
 			expect(ordered[1].y).toBe(0);
-			expect(ordered[2].x).toBe(0);   // BL
+			expect(ordered[2].x).toBe(0); // BL
 			expect(ordered[2].y).toBe(100);
 			expect(ordered[3].x).toBe(100); // BR
 			expect(ordered[3].y).toBe(100);
@@ -267,8 +268,8 @@ describe("CropPointManager", () => {
 			// Quadrilateral rotated 45 degrees (diamond shape)
 			const points: CropPoint[] = [
 				{ x: 50, y: 100, isDragging: false }, // Bottom (x+y = 150)
-				{ x: 0, y: 50, isDragging: false },   // Left (x+y = 50) - This is TL
-				{ x: 50, y: 0, isDragging: false },   // Top (x+y = 50) - This is also TL candidate
+				{ x: 0, y: 50, isDragging: false }, // Left (x+y = 50) - This is TL
+				{ x: 50, y: 0, isDragging: false }, // Top (x+y = 50) - This is also TL candidate
 				{ x: 100, y: 50, isDragging: false }, // Right (x+y = 150)
 			];
 

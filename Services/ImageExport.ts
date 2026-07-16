@@ -207,6 +207,7 @@ export function tintCanvasImage(
 	return tempCanvas;
 }
 
+// SVG output stays portable by embedding a PNG payload inside an SVG wrapper rather than depending on external assets.
 /**
  * Export canvas to SVG blob (PNG embedded in SVG wrapper)
  * @param canvas - Canvas element to export

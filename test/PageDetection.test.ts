@@ -1,6 +1,7 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 import { detectPageCorners } from "../Services/PageDetection";
 
+// These tests lock down the page detector's edge and contour pipeline using synthetic document-like images.
 /**
  * Creates a synthetic ImageData: a white "page" rectangle on a
  * dark, slightly saturated "background" — mimics a sheet of paper
@@ -9,14 +10,18 @@ import { detectPageCorners } from "../Services/PageDetection";
 function createTestImage(
 	width: number,
 	height: number,
-	page: { x: number; y: number; w: number; h: number }
+	page: { x: number; y: number; w: number; h: number },
 ): ImageData {
 	const data = new Uint8ClampedArray(width * height * 4);
 
 	for (let y = 0; y < height; y++) {
 		for (let x = 0; x < width; x++) {
 			const idx = (y * width + x) * 4;
-			const inPage = x >= page.x && x < page.x + page.w && y >= page.y && y < page.y + page.h;
+			const inPage =
+				x >= page.x &&
+				x < page.x + page.w &&
+				y >= page.y &&
+				y < page.y + page.h;
 
 			if (inPage) {
 				// near-white, low saturation
@@ -62,7 +67,10 @@ describe("detectPageCorners", () => {
 
 		const tolerance = 25; // pixels
 		for (let i = 0; i < 4; i++) {
-			const d = Math.hypot(result[i].x - expected[i].x, result[i].y - expected[i].y);
+			const d = Math.hypot(
+				result[i].x - expected[i].x,
+				result[i].y - expected[i].y,
+			);
 			expect(d).toBeLessThan(tolerance);
 		}
 	});
@@ -73,7 +81,12 @@ describe("detectPageCorners", () => {
 		const data = new Uint8ClampedArray(width * height * 4).fill(128);
 		for (let i = 3; i < data.length; i += 4) data[i] = 255; // alpha
 
-		const imageData = { data, width, height, colorSpace: "srgb" } as ImageData;
+		const imageData = {
+			data,
+			width,
+			height,
+			colorSpace: "srgb",
+		} as ImageData;
 		const result = detectPageCorners(imageData);
 
 		expect(result).toBeNull();

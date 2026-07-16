@@ -6,6 +6,7 @@
 
 import { CropPoint, ImageDimensions, Rectangle } from "./types";
 
+// This module keeps crop geometry and point ordering consistent across drag handling and perspective export.
 /**
  * Initialize crop points at the four corners of an image rectangle
  * @param imageRect - Rectangle representing the image area
