@@ -44,6 +44,7 @@ export class ScannerModal extends Modal {
 			this.container,
 			this.container.createEl("canvas"),
 			1, // Square 1:1 ratio for initial placeholder
+			this.plugin.logger,
 		);
 
 		this.buttonWrapper = this.contentEl.createDiv("button-wrapper");
@@ -57,6 +58,7 @@ export class ScannerModal extends Modal {
 	onOpen() {
 		try {
 			this.canvas.setup();
+
 			void this.plugin.logger.info("Canvas setup");
 		} catch (error) {
 			const message =

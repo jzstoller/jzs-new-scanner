@@ -43,27 +43,38 @@ export default class ScannerPlugin extends Plugin {
 			logFilePath: "Logs/Scanner Log.md",
 		});
 
-		// await this.logger.info('Plugin loaded');
+		await this.logger.info("Plugin loaded");
 
 		await this.loadSettings();
 
-		// await this.logger.info("Settings loaded");
+		await this.logger.info("Settings loaded");
 
 		// Lazy-load the modal so the scanner UI is only loaded when the user actually opens it.
 		const openWithFilePicker = async () => {
+			await this.logger.info("Opening file picker");
 			try {
 				const { ScannerModal } =
 					await import("./UI/Modals/scannerModal");
+				await this.logger.info("Scanner modal loaded");
 				const input = activeDocument.createElement("input");
+				await this.logger.info("File input element created");
 				input.type = "file";
 				input.accept = "image/*";
+				await this.logger.info("Image picker configured");
 				input.onchange = () => {
+					this.logger.info("File selection changed");
 					const file = input.files?.[0];
-					this.logger.info("File picked");
+					this.logger.info(
+						file
+							? `File picked: ${file.name}`
+							: "File picker closed without selection",
+					);
+					this.logger.info("Opening scanner modal");
 					new ScannerModal(this.app, this, file ?? null).open();
 					input.value = "";
 				};
 				input.click();
+				await this.logger.info("File dialog requested");
 			} catch (err) {
 				await this.logger.error(
 					`Failed to open scanner: ${String(err)}`,
@@ -74,7 +85,7 @@ export default class ScannerPlugin extends Plugin {
 		// Ribbon and command palette both route through the same file-picker entry point.
 		this.addRibbonIcon("scan", "Simple Scanner2", openWithFilePicker);
 
-		await this.logger.info("Added Ribbon Icon");
+		await this.logger.info("Ribbon icon registered");
 
 		this.addCommand({
 			id: "open-scanner2",

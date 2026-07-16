@@ -25,7 +25,10 @@ export default class Logger {
 	}
 
 	private timestamp(): string {
-		return new Date().toISOString();
+		return new Date().toLocaleString("en-US", {
+			timeZone: "America/New_York",
+			hour12: false,
+		});
 	}
 
 	private format(level: LogLevel, message: string): string {

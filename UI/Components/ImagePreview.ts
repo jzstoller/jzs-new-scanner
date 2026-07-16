@@ -23,6 +23,7 @@ import {
 	performPerspectiveCrop,
 } from "Services/ImageTransform";
 import { findCropPointAtPosition } from "Services/Interaction";
+import type Logger from "Services/Logger";
 import {
 	CropPoint,
 	CropPointStyle,
@@ -45,6 +46,9 @@ export class ImagePreview {
 	private imgWidth!: number;
 	private imgHeight!: number;
 
+	// Optional logger for debugging
+	private logger?: Logger;
+
 	// for continuous rotation
 	private toRotateDegree!: number;
 
@@ -62,10 +66,12 @@ export class ImagePreview {
 		parent: HTMLElement,
 		element: HTMLCanvasElement,
 		ratio: number,
+		logger?: Logger,
 	) {
 		this.parent = parent;
 		this.canvas = element;
 		this.ratio = ratio;
+		this.logger = logger;
 
 		// Initialize configurations
 		this.magnifierConfig = {
@@ -465,6 +471,8 @@ export class ImagePreview {
 
 					this.ctx.drawImage(this.img, 0, 0, cssWidth, cssHeight);
 
+					void this.logger?.info("Drew image");
+
 					onReady?.();
 				});
 			})
@@ -546,6 +554,8 @@ export class ImagePreview {
 
 		this.renderCroppingPointsOnCanvas();
 		this.croppingPointsVisible = true;
+
+		void this.logger?.info("Drew cropping points");
 	}
 
 	private renderCroppingPointsOnCanvas() {
@@ -709,6 +719,8 @@ export class ImagePreview {
 			.catch((error) => {
 				console.error("Error creating image from crop:", error);
 			});
+
+		void this.logger?.info("Performed perspective crop");
 
 		return {
 			success: true,
