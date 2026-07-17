@@ -471,7 +471,7 @@ export class ImagePreview {
 
 					this.ctx.drawImage(this.img, 0, 0, cssWidth, cssHeight);
 
-					void this.logger?.info("Drew image");
+					//void this.logger?.info("Drew image");
 
 					onReady?.();
 				});
@@ -555,7 +555,7 @@ export class ImagePreview {
 		this.renderCroppingPointsOnCanvas();
 		this.croppingPointsVisible = true;
 
-		void this.logger?.info("Drew cropping points");
+		//void this.logger?.info("Drew cropping points");
 	}
 
 	private renderCroppingPointsOnCanvas() {
@@ -720,7 +720,7 @@ export class ImagePreview {
 				console.error("Error creating image from crop:", error);
 			});
 
-		void this.logger?.info("Performed perspective crop");
+		//void this.logger?.info("Performed perspective crop");
 
 		return {
 			success: true,

@@ -56,6 +56,7 @@ export class ScannerModal extends Modal {
 	}
 
 	onOpen() {
+		void this.plugin.logger.info("Scanner modal onOpen");
 		try {
 			this.canvas.setup();
 
@@ -92,9 +93,15 @@ export class ScannerModal extends Modal {
 			.onClick(() => this.toggleCropMode());
 
 		if (this.initialFile) {
+			void this.plugin.logger.info(
+				`Initial file provided: ${this.initialFile.name}`,
+			);
 			this.canvas.darawImage(this.initialFile, () =>
 				this.detectAndShowCorners(),
 			);
+			void this.plugin.logger.info("Initial file draw requested");
+		} else {
+			void this.plugin.logger.info("No initial file provided");
 		}
 
 		// Initialize export controls
@@ -166,7 +173,7 @@ export class ScannerModal extends Modal {
 				scaledCorners,
 			);
 			if (success) {
-				void this.plugin.logger.info("Detected corners");
+				//void this.plugin.logger.info("Detected corners");
 				this.buttonWrapper.hide();
 				this.confirmButtonWrapper.show();
 			} else {
@@ -226,7 +233,7 @@ export class ScannerModal extends Modal {
 				// Show success message
 				new Notice(result.message, 3000);
 
-				void this.plugin.logger.info("Processed perspective crop");
+				//void this.plugin.logger.info("Processed perspective crop");
 
 				// Wait a brief moment for the crop to render
 				await new Promise((resolve) => window.setTimeout(resolve, 100));

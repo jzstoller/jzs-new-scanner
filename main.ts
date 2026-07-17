@@ -43,11 +43,11 @@ export default class ScannerPlugin extends Plugin {
 			logFilePath: "Logs/Scanner Log.md",
 		});
 
-		await this.logger.info("Plugin loaded");
+		//await this.logger.info("Plugin loaded");
 
 		await this.loadSettings();
 
-		await this.logger.info("Settings loaded");
+		//await this.logger.info("Settings loaded");
 
 		// Lazy-load the modal so the scanner UI is only loaded when the user actually opens it.
 		const openWithFilePicker = async () => {
@@ -55,25 +55,101 @@ export default class ScannerPlugin extends Plugin {
 			try {
 				const { ScannerModal } =
 					await import("./UI/Modals/scannerModal");
+
 				await this.logger.info("Scanner modal loaded");
+
 				const input = activeDocument.createElement("input");
-				await this.logger.info("File input element created");
+
+				//await this.logger.info("File input element created");
+
 				input.type = "file";
 				input.accept = "image/*";
-				await this.logger.info("Image picker configured");
+
+				await this.logger.info(
+					`Input connected to DOM before click: ${input.isConnected}`,
+				);
+
+				const onVisibilityChange = () => {
+					this.logger.info(
+						`document visibilitychange: ${activeDocument.visibilityState}`,
+					);
+				};
+
+				const onPageHide = () => {
+					this.logger.info("window pagehide fired");
+				};
+
+				const onPageShow = () => {
+					this.logger.info("window pageshow fired");
+				};
+				const onWindowBlur = () => {
+					this.logger.info("window blur fired");
+				};
+				const onWindowFocus = () => {
+					this.logger.info("window focus fired");
+				};
+
+				activeDocument.addEventListener(
+					"visibilitychange",
+					onVisibilityChange,
+				);
+				//activeWindow.addEventListener("pagehide", onPageHide);
+				//activeWindow.addEventListener("pageshow", onPageShow);
+				//activeWindow.addEventListener("blur", onWindowBlur);
+				//activeWindow.addEventListener("focus", onWindowFocus);
+
+				/*
+				const cleanupDiagnosticListeners = () => {
+					activeDocument.removeEventListener(
+						"visibilitychange",
+						onVisibilityChange,
+					);
+					activeWindow.removeEventListener(
+						"pagehide",
+						onPageHide,
+					);
+					activeWindow.removeEventListener(
+						"pageshow",
+						onPageShow,
+					);
+					activeWindow.removeEventListener("blur", onWindowBlur);
+					activeWindow.removeEventListener(
+						"focus",
+						onWindowFocus,
+					);
+				};
+				*/
+
 				input.onchange = () => {
+
 					this.logger.info("File selection changed");
+
+					//cleanupDiagnosticListeners();
+
+					this.logger.info(
+						`Input connected to DOM in onchange: ${input.isConnected}`,
+					);
+
 					const file = input.files?.[0];
+
 					this.logger.info(
 						file
 							? `File picked: ${file.name}`
 							: "File picker closed without selection",
 					);
-					this.logger.info("Opening scanner modal");
+
+					this.logger.info("Scanner modal instance created");
+
 					new ScannerModal(this.app, this, file ?? null).open();
+
+					this.logger.info("Scanner modal open requested");
+
 					input.value = "";
+
+					this.logger.info("File input reset");
 				};
 				input.click();
+
 				await this.logger.info("File dialog requested");
 			} catch (err) {
 				await this.logger.error(
@@ -85,7 +161,7 @@ export default class ScannerPlugin extends Plugin {
 		// Ribbon and command palette both route through the same file-picker entry point.
 		this.addRibbonIcon("scan", "Simple Scanner2", openWithFilePicker);
 
-		await this.logger.info("Ribbon icon registered");
+		//await this.logger.info("Ribbon icon registered");
 
 		this.addCommand({
 			id: "open-scanner2",
