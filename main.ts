@@ -318,9 +318,9 @@ class ScannerSettingTab extends PluginSettingTab {
 			text: this.plugin.settings.exportQuality.toFixed(2),
 			cls: "export-quality-value",
 		});
-		valueDisplay.style.marginLeft = "12px";
-		valueDisplay.style.fontWeight = "bold";
-		valueDisplay.style.color = "var(--text-accent)";
+		//valueDisplay.style.marginLeft = "12px";
+		//valueDisplay.style.fontWeight = "bold";
+		//valueDisplay.style.color = "var(--text-accent)";
 
 		// Hook into the slider's input event to update display while dragging
 		const sliderInput = exportQualitySetting.controlEl.querySelector(
