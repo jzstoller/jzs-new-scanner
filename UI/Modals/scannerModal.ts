@@ -56,11 +56,11 @@ export class ScannerModal extends Modal {
 	}
 
 	onOpen() {
-		void this.plugin.logger.info("Scanner modal onOpen");
+		// void this.plugin.logger.info("Scanner modal onOpen");
 		try {
 			this.canvas.setup();
 
-			void this.plugin.logger.info("Canvas setup");
+			// void this.plugin.logger.info("Canvas setup");
 		} catch (error) {
 			const message =
 				error instanceof Error ? error.message : String(error);
@@ -93,15 +93,15 @@ export class ScannerModal extends Modal {
 			.onClick(() => this.toggleCropMode());
 
 		if (this.initialFile) {
-			void this.plugin.logger.info(
-				`Initial file provided: ${this.initialFile.name}`,
-			);
+			// 7/18 8p, void this.plugin.logger.info(
+			// 	`Initial file provided: ${this.initialFile.name}`,
+			// );
 			this.canvas.darawImage(this.initialFile, () =>
 				this.detectAndShowCorners(),
 			);
-			void this.plugin.logger.info("Initial file draw requested");
+			// void this.plugin.logger.info("Initial file draw requested");
 		} else {
-			void this.plugin.logger.info("No initial file provided");
+			// 7/18 8p, void this.plugin.logger.info("No initial file provided");
 		}
 
 		// Initialize export controls

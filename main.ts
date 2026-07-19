@@ -51,12 +51,13 @@ export default class ScannerPlugin extends Plugin {
 
 		// Lazy-load the modal so the scanner UI is only loaded when the user actually opens it.
 		const openWithFilePicker = async () => {
-			await this.logger.info("Opening file picker");
+			// 7/18 5p, await this.logger.info("Opening file picker");
+			// JZS - these try/catch fixes this iOS issue?
 			try {
 				const { ScannerModal } =
 					await import("./UI/Modals/scannerModal");
 
-				await this.logger.info("Scanner modal loaded");
+				// 7/18 5p, await this.logger.info("Scanner modal loaded");
 
 				const input = activeDocument.createElement("input");
 
@@ -65,16 +66,17 @@ export default class ScannerPlugin extends Plugin {
 				input.type = "file";
 				input.accept = "image/*";
 
-				await this.logger.info(
-					`Input connected to DOM before click: ${input.isConnected}`,
-				);
+				// await this.logger.info(
+					// 7/18 5p, `Input connected to DOM before click: ${input.isConnected}`,
+				//.);
 
 				const onVisibilityChange = () => {
-					this.logger.info(
-						`document visibilitychange: ${activeDocument.visibilityState}`,
-					);
+					//this.logger.info(
+					//	`document visibilitychange: ${activeDocument.visibilityState}`,
+					//);
 				};
 
+				/*
 				const onPageHide = () => {
 					this.logger.info("window pagehide fired");
 				};
@@ -88,6 +90,7 @@ export default class ScannerPlugin extends Plugin {
 				const onWindowFocus = () => {
 					this.logger.info("window focus fired");
 				};
+				*/
 
 				activeDocument.addEventListener(
 					"visibilitychange",
@@ -122,35 +125,35 @@ export default class ScannerPlugin extends Plugin {
 
 				input.onchange = () => {
 
-					this.logger.info("File selection changed");
+					// 7/18 7p, this.logger.info("File selection changed");
 
 					//cleanupDiagnosticListeners();
 
-					this.logger.info(
-						`Input connected to DOM in onchange: ${input.isConnected}`,
-					);
+					// this.logger.info(
+					// 	`Input connected to DOM in onchange: ${input.isConnected}`,
+					// );
 
 					const file = input.files?.[0];
 
-					this.logger.info(
-						file
-							? `File picked: ${file.name}`
-							: "File picker closed without selection",
-					);
+					// 7/18 7p, this.logger.info(
+					//	file
+					//		? `File picked: ${file.name}`
+					//		: "File picker closed without selection",
+					//);
 
-					this.logger.info("Scanner modal instance created");
+					// this.logger.info("Scanner modal instance created");
 
 					new ScannerModal(this.app, this, file ?? null).open();
 
-					this.logger.info("Scanner modal open requested");
+					// 7/18 7p, this.logger.info("Just past Scanner modal");
 
 					input.value = "";
 
-					this.logger.info("File input reset");
+					// this.logger.info("File input reset");
 				};
 				input.click();
 
-				await this.logger.info("File dialog requested");
+				// 7/18 6p, await this.logger.info("File dialog requested");
 			} catch (err) {
 				await this.logger.error(
 					`Failed to open scanner: ${String(err)}`,
@@ -178,6 +181,7 @@ export default class ScannerPlugin extends Plugin {
 	}
 
 	async loadSettings() {
+		// JZS - these try/catch fixes this iOS issue?
 		try {
 			this.settings = Object.assign(
 				{},
@@ -194,6 +198,7 @@ export default class ScannerPlugin extends Plugin {
 	}
 
 	async saveSettings() {
+		// JZS - these try/catch fixes this iOS issue?
 		try {
 			await this.saveData(this.settings);
 		} catch (err) {
