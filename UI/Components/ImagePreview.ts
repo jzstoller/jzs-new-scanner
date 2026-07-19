@@ -396,6 +396,7 @@ export class ImagePreview {
 		}
 
 		const dimensions = this.getSourceDimensions();
+		// eslint-disable-next-line obsidianmd/prefer-create-el
 		const workingCanvas = activeDocument.createElement("canvas");
 		workingCanvas.width = dimensions.width;
 		workingCanvas.height = dimensions.height;
@@ -768,6 +769,7 @@ export class ImagePreview {
 			}
 		}
 
+		// eslint-disable-next-line obsidianmd/prefer-create-el
 		const exportCanvas = activeDocument.createElement("canvas");
 		exportCanvas.width = exportWidth;
 		exportCanvas.height = exportHeight;

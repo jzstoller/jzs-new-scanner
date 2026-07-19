@@ -74,6 +74,7 @@ export function validateFilename(filename: string): {
 export function stripAlphaChannel(
 	canvas: HTMLCanvasElement,
 ): HTMLCanvasElement {
+	// eslint-disable-next-line obsidianmd/prefer-create-el
 	const rgbCanvas = activeDocument.createElement("canvas");
 	rgbCanvas.width = canvas.width;
 	rgbCanvas.height = canvas.height;
@@ -101,6 +102,7 @@ export function resizeCanvas(
 	if (longEdge <= targetLongEdge) return canvas;
 
 	const scale = targetLongEdge / longEdge;
+	// eslint-disable-next-line obsidianmd/prefer-create-el
 	const out = activeDocument.createElement("canvas");
 	out.width = Math.round(width * scale);
 	out.height = Math.round(height * scale);
@@ -167,6 +169,7 @@ export function tintCanvasImage(
 	canvas: HTMLCanvasElement,
 	tintColor: string,
 ): HTMLCanvasElement {
+	// eslint-disable-next-line obsidianmd/prefer-create-el
 	const tempCanvas = activeDocument.createElement("canvas");
 	tempCanvas.width = canvas.width;
 	tempCanvas.height = canvas.height;

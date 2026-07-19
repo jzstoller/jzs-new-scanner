@@ -59,6 +59,7 @@ export default class ScannerPlugin extends Plugin {
 
 				// 7/18 5p, await this.logger.info("Scanner modal loaded");
 
+				// eslint-disable-next-line obsidianmd/prefer-create-el
 				const input = activeDocument.createElement("input");
 
 				//await this.logger.info("File input element created");
@@ -330,7 +331,10 @@ class ScannerSettingTab extends PluginSettingTab {
 		// Hook into the slider's input event to update display while dragging
 		const sliderInput = exportQualitySetting.controlEl.querySelector(
 			'input[type="range"]',
-		) as HTMLInputElement | null;
+		);
+		if (sliderInput instanceof HTMLInputElement) {
+			// safe
+		}
 		if (sliderInput) {
 			sliderInput.addEventListener("input", (e) => {
 				const target = e.target as HTMLInputElement;
