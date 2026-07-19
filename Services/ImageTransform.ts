@@ -158,7 +158,6 @@ export function createImageFromImageData(
 ): Promise<HTMLImageElement> {
 	return new Promise((resolve, reject) => {
 		// Create temporary canvas matching ImageData dimensions (handles DPR correctly)
-		// eslint-disable-next-line obsidianmd/prefer-create-el
 		const tempCanvas = activeDocument.createElement("canvas");
 		tempCanvas.width = width ?? imageData.width;
 		tempCanvas.height = height ?? imageData.height;

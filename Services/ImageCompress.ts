@@ -48,7 +48,6 @@ export async function compressCanvas(
 	const outW = Math.max(1, Math.round(srcW * scale));
 	const outH = Math.max(1, Math.round(srcH * scale));
 
-	// eslint-disable-next-line obsidianmd/prefer-create-el
 	const out = activeDocument.createElement("canvas");
 	out.width = outW;
 	out.height = outH;

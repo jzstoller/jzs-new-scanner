@@ -59,7 +59,6 @@ export default class ScannerPlugin extends Plugin {
 
 				// 7/18 5p, await this.logger.info("Scanner modal loaded");
 
-				// eslint-disable-next-line obsidianmd/prefer-create-el
 				const input = activeDocument.createElement("input");
 
 				//await this.logger.info("File input element created");
