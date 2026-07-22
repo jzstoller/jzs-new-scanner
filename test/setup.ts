@@ -108,6 +108,12 @@ beforeEach(() => {
 	global.URL.createObjectURL = vi.fn(() => "blob:mock-url");
 	global.URL.revokeObjectURL = vi.fn();
 
+	// Obsidian provides `activeDocument` globally (aliasing `document`, or a
+	// popout window's document) so canvas-creation code works across popouts.
+	// happy-dom doesn't define it, so alias it to `document` for tests.
+	(global as unknown as { activeDocument: Document }).activeDocument =
+		document;
+
 	// Mock window.devicePixelRatio
 	Object.defineProperty(window, "devicePixelRatio", {
 		writable: true,
