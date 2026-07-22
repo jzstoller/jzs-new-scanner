@@ -1,9 +1,9 @@
 import { App, ButtonComponent, Notice } from "obsidian";
 import { compressCanvas } from "Services/ImageCompress";
 import {
-	exportCanvasToSVG,
+	// exportCanvasToSVG,
 	generateDefaultFilename,
-	getFileExtension,
+	// getFileExtension,
 } from "Services/ImageExport";
 import { saveToVault } from "Services/VaultExport";
 import { applyWhiteBalanceToCanvas } from "Services/WhiteBalance";
@@ -53,7 +53,7 @@ export class ExportControls {
 		const {
 			exportDefaultFormat,
 			exportDefaultFolder,
-			svgTintColor,
+			// svgTintColor,
 			insertLinkAfterExport,
 			closeAfterExport,
 			optimizeImageSize,
@@ -64,6 +64,7 @@ export class ExportControls {
 
 		try {
 			// SVG bypasses compression entirely
+			/*
 			if (exportDefaultFormat === "svg") {
 				let canvas = this.getCanvas();
 				if (this.plugin.settings.autoWhiteBalance) {
@@ -90,6 +91,7 @@ export class ExportControls {
 				);
 				return;
 			}
+			*/
 
 			// For raster formats, use compressCanvas which handles resize + alpha flatten + encode
 			const targetLongEdge = optimizeImageSize ? 2000 : undefined;
@@ -99,12 +101,16 @@ export class ExportControls {
 				canvas = applyWhiteBalanceToCanvas(canvas);
 			}
 
-			const formatMimeMap: Record<string, "image/jpeg" | "image/png"> = {
+			// Define the allowed export formats
+			type ExportFormat = "png" | "jpg";
+
+			// ExportFormat should be your union type: "png" | "jpg"
+			const formatMimeMap: Record<ExportFormat, "image/jpeg" | "image/png"> = {
 				png: "image/png",
 				jpg: "image/jpeg",
 			};
-			const requestedMime =
-				formatMimeMap[exportDefaultFormat] ?? "image/jpeg";
+
+			const requestedMime = formatMimeMap[exportDefaultFormat];
 
 			const result = await compressCanvas(canvas, {
 				maxDimension: targetLongEdge,

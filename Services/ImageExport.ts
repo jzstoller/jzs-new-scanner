@@ -9,7 +9,7 @@
  * Pure functions with no Obsidian API dependencies
  */
 
-export type ExportFormat = "png" | "jpg" | "svg";
+export type ExportFormat = "png" | "jpg"; // | "svg";
 
 /**
  * Parse a hex color string to {r, g, b}
@@ -71,6 +71,7 @@ export function validateFilename(filename: string): {
 /**
  * Remove alpha channel by drawing onto an opaque RGB canvas
  */
+/*
 export function stripAlphaChannel(
 	canvas: HTMLCanvasElement,
 ): HTMLCanvasElement {
@@ -87,6 +88,7 @@ export function stripAlphaChannel(
 
 	return rgbCanvas;
 }
+*/
 
 /**
  * Resize canvas so its longest edge equals targetSize px, maintaining aspect ratio.
@@ -163,6 +165,7 @@ export function exportCanvasToPNG(canvas: HTMLCanvasElement): Promise<Blob> {
  * @param tintColor - Hex color string (e.g. "#ff0000")
  * @returns New canvas with tint applied
  */
+/*
 export function tintCanvasImage(
 	canvas: HTMLCanvasElement,
 	tintColor: string,
@@ -206,6 +209,7 @@ export function tintCanvasImage(
 	ctx.putImageData(imageData, 0, 0);
 	return tempCanvas;
 }
+*/
 
 // SVG output stays portable by embedding a PNG payload inside an SVG wrapper rather than depending on external assets.
 /**
@@ -214,6 +218,7 @@ export function tintCanvasImage(
  * @param tintColor - Optional hex color to tint the image before export
  * @returns SVG blob with embedded PNG
  */
+/*
 export function exportCanvasToSVG(
 	canvas: HTMLCanvasElement,
 	tintColor?: string,
@@ -239,6 +244,7 @@ export function exportCanvasToSVG(
 
 	return new Blob([svg], { type: "image/svg+xml" });
 }
+*/
 
 /**
  * Convert blob to ArrayBuffer for vault.createBinary()
@@ -251,11 +257,12 @@ export async function blobToArrayBuffer(blob: Blob): Promise<ArrayBuffer> {
 
 /**
  * Get file extension for export format
- * @param format - "png", "jpg", or "svg"
+ * @param format - "png", or "jpg"
  * @returns File extension with dot (e.g., ".png")
  */
 export function getFileExtension(format: ExportFormat): string {
 	if (format === "png") return ".png";
-	if (format === "jpg") return ".jpg";
-	return ".svg";
+	//if (format === "jpg") return ".jpg";
+	//return ".svg";
+	return ".jpg"; // Default to .jpg for now
 }

@@ -13,9 +13,9 @@ interface ScannerSettings {
 	exportDefaultFormat: ExportFormat;
 	closeAfterExport: boolean;
 	insertLinkAfterExport: boolean;
-	svgTintColor: string;
+	// svgTintColor: string;
 	optimizeImageSize: boolean;
-	stripAlpha: boolean;
+	// stripAlpha: boolean;
 	exportQuality: number;
 	autoWhiteBalance: boolean;
 }
@@ -25,9 +25,9 @@ const DEFAULT_SETTINGS: ScannerSettings = {
 	exportDefaultFormat: "png",
 	closeAfterExport: true,
 	insertLinkAfterExport: true,
-	svgTintColor: "#000000",
+	// svgTintColor: "#000000",
 	optimizeImageSize: true,
-	stripAlpha: false,
+	// stripAlpha: false,
 	exportQuality: 0.92,
 	autoWhiteBalance: false,
 };
@@ -243,7 +243,7 @@ class ScannerSettingTab extends PluginSettingTab {
 				dropdown
 					.addOption("png", "PNG")
 					.addOption("jpg", "JPG")
-					.addOption("svg", "SVG")
+					//.addOption("svg", "SVG")
 					.setValue(this.plugin.settings.exportDefaultFormat)
 					.onChange(async (value: string) => {
 						this.plugin.settings.exportDefaultFormat =
@@ -252,6 +252,7 @@ class ScannerSettingTab extends PluginSettingTab {
 					}),
 			);
 
+		/*
 		new Setting(containerEl)
 			.setName("SVG tint color")
 			.setDesc("Color applied to ink areas when exporting as SVG")
@@ -263,10 +264,11 @@ class ScannerSettingTab extends PluginSettingTab {
 						await this.plugin.saveSettings();
 					}),
 			);
+		*/
 		new Setting(containerEl)
 			.setName("Auto white balance")
 			.setDesc(
-				"Automatically correct color cast before exporting, using the brightest areas of the scan as a white reference. Helps fix yellow/blue tinted scans. Note: has little visible effect on SVG exports, since those are recolored using the SVG tint color rather than the scan's original colors.",
+				"Automatically correct color cast before exporting, using the brightest areas of the scan as a white reference. Helps fix yellow/blue tinted scans.",
 			)
 			.addToggle((toggle) =>
 				toggle
@@ -290,10 +292,11 @@ class ScannerSettingTab extends PluginSettingTab {
 					}),
 			);
 
+		/*
 		new Setting(containerEl)
 			.setName("Strip alpha channel")
 			.setDesc(
-				"Flatten transparency to a white background before exporting. Reduces file size for JPG. Has no effect on SVG.",
+				"Flatten transparency to a white background before exporting. Reduces file size for JPG.",
 			)
 			.addToggle((toggle) =>
 				toggle
@@ -303,11 +306,12 @@ class ScannerSettingTab extends PluginSettingTab {
 						await this.plugin.saveSettings();
 					}),
 			);
+		*/
 
 		const exportQualitySetting = new Setting(containerEl)
 			.setName("Export quality")
 			.setDesc(
-				"Compression quality for JPG exports (0.1 = smallest, 1.0 = best). Has no effect on PNG or SVG.",
+				"Compression quality for JPG exports (0.1 = smallest, 1.0 = best). Has no effect on PNG",
 			)
 			.addSlider((slider) =>
 				slider
