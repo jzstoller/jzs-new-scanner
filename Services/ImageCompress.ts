@@ -5,15 +5,23 @@
  *
  * - Resizes so the longer side is at most maxDimension (default 2000px)
  * - Flattens alpha onto a white background
+ * - Optionally stretches to a target aspect ratio (e.g. 16:9), after the
+ *   long-edge resize, so the ratio math always operates on the final size
  * - Re-encodes in the requested format
  * - Detects iOS WebP fallback-to-PNG and throws instead of mislabeling the file
  */
+
+import {
+	stretchCanvasToAspectRatio,
+	type AspectRatioSetting,
+} from "./AspectRatio";
 
 export interface CompressOptions {
 	maxDimension?: number;
 	quality?: number;
 	backgroundColor?: string;
 	outputMime?: "image/jpeg" | "image/png";
+	aspectRatio?: AspectRatioSetting;
 }
 
 export interface CompressResult {
@@ -60,15 +68,23 @@ export async function compressCanvas(
 	ctx.imageSmoothingQuality = "high";
 	ctx.drawImage(canvas, 0, 0, outW, outH);
 
+	// Aspect-ratio reshaping runs after the long-edge resize above, so it
+	// always operates on the final, already-downscaled canvas rather than
+	// the full-resolution source.
+	const finalCanvas = stretchCanvasToAspectRatio(
+		out,
+		opts.aspectRatio ?? "original",
+	);
+
 	const requestedMime = opts.outputMime ?? "image/jpeg";
-	const outBlob = await canvasToBlob(out, requestedMime, opts.quality);
+	const outBlob = await canvasToBlob(finalCanvas, requestedMime, opts.quality);
 
 	const buffer = await outBlob.arrayBuffer();
 	return {
 		buffer,
 		ext: mimeToExt(requestedMime),
-		width: outW,
-		height: outH,
+		width: finalCanvas.width,
+		height: finalCanvas.height,
 		byteLength: buffer.byteLength,
 	};
 }
