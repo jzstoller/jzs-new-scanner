@@ -1,6 +1,6 @@
 import { App, ButtonComponent, Notice } from "obsidian";
 import { compressCanvas } from "Services/ImageCompress";
-import { generateDefaultFilename } from "Services/ImageExport";
+import { generateDefaultFilename, ExportFormat } from "Services/ImageExport";
 import { saveToVault } from "Services/VaultExport";
 import { applyWhiteBalanceToCanvas } from "Services/WhiteBalance";
 import type ScannerPlugin from "../../main";
@@ -67,7 +67,7 @@ export class ExportControls {
 			}
 
 			// Define the allowed export formats
-			type ExportFormat = "png" | "jpg";
+			//type ExportFormat = "png" | "jpg";
 
 			// ExportFormat should be your union type: "png" | "jpg"
 			const formatMimeMap: Record<ExportFormat, "image/jpeg" | "image/png"> = {

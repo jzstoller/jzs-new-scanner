@@ -274,22 +274,6 @@ class ScannerSettingTab extends PluginSettingTab {
 					}),
 			);
 
-		/*
-		new Setting(containerEl)
-			.setName("Strip alpha channel")
-			.setDesc(
-				"Flatten transparency to a white background before exporting. Reduces file size for JPG.",
-			)
-			.addToggle((toggle) =>
-				toggle
-					.setValue(this.plugin.settings.stripAlpha)
-					.onChange(async (value) => {
-						this.plugin.settings.stripAlpha = value;
-						await this.plugin.saveSettings();
-					}),
-			);
-		*/
-
 		const exportQualitySetting = new Setting(containerEl)
 			.setName("Export quality")
 			.setDesc(

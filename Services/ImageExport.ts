@@ -73,6 +73,7 @@ export function validateFilename(filename: string): {
  * Resize canvas so its longest edge equals targetSize px, maintaining aspect ratio.
  * Returns the same canvas unchanged if it's already smaller.
  */
+/*
 export function resizeCanvas(
 	canvas: HTMLCanvasElement,
 	targetLongEdge = 2000,
@@ -89,6 +90,7 @@ export function resizeCanvas(
 	if (outCtx) outCtx.drawImage(canvas, 0, 0, out.width, out.height);
 	return out;
 }
+*/
 
 /**
  * Export canvas to JPG blob
@@ -96,6 +98,7 @@ export function resizeCanvas(
  * @param quality - JPEG quality (0.0 to 1.0, default 0.92)
  * @returns JPG blob
  */
+/*
 export function exportCanvasToJPG(
 	canvas: HTMLCanvasElement,
 	quality = 0.92,
@@ -114,6 +117,7 @@ export function exportCanvasToJPG(
 		);
 	});
 }
+*/
 
 /**
  * Export canvas to PNG blob with transparent background
