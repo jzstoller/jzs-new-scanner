@@ -61,8 +61,8 @@ describe("detectPageCorners", () => {
 		const expected = [
 			{ x: page.x, y: page.y }, // TL
 			{ x: page.x + page.w, y: page.y }, // TR
-			{ x: page.x + page.w, y: page.y + page.h }, // BR
 			{ x: page.x, y: page.y + page.h }, // BL
+			{ x: page.x + page.w, y: page.y + page.h }, // BR
 		];
 
 		const tolerance = 25; // pixels
