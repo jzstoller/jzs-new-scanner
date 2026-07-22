@@ -13,9 +13,7 @@ interface ScannerSettings {
 	exportDefaultFormat: ExportFormat;
 	closeAfterExport: boolean;
 	insertLinkAfterExport: boolean;
-	// svgTintColor: string;
 	optimizeImageSize: boolean;
-	// stripAlpha: boolean;
 	exportQuality: number;
 	autoWhiteBalance: boolean;
 }
@@ -25,9 +23,7 @@ const DEFAULT_SETTINGS: ScannerSettings = {
 	exportDefaultFormat: "png",
 	closeAfterExport: true,
 	insertLinkAfterExport: true,
-	// svgTintColor: "#000000",
 	optimizeImageSize: true,
-	// stripAlpha: false,
 	exportQuality: 0.92,
 	autoWhiteBalance: false,
 };
@@ -243,7 +239,6 @@ class ScannerSettingTab extends PluginSettingTab {
 				dropdown
 					.addOption("png", "PNG")
 					.addOption("jpg", "JPG")
-					//.addOption("svg", "SVG")
 					.setValue(this.plugin.settings.exportDefaultFormat)
 					.onChange(async (value: string) => {
 						this.plugin.settings.exportDefaultFormat =
@@ -252,19 +247,6 @@ class ScannerSettingTab extends PluginSettingTab {
 					}),
 			);
 
-		/*
-		new Setting(containerEl)
-			.setName("SVG tint color")
-			.setDesc("Color applied to ink areas when exporting as SVG")
-			.addColorPicker((picker) =>
-				picker
-					.setValue(this.plugin.settings.svgTintColor)
-					.onChange(async (value) => {
-						this.plugin.settings.svgTintColor = value;
-						await this.plugin.saveSettings();
-					}),
-			);
-		*/
 		new Setting(containerEl)
 			.setName("Auto white balance")
 			.setDesc(

@@ -34,7 +34,6 @@ An Obsidian plugin for scanning and processing handwritten notes and documents. 
 - Export happens on a single button click with no modal — all options are configured in Settings
 - PNG: lossless, preserves transparency
 - JPG: lossy, configurable quality, alpha flattened to white background
-- SVG: PNG embedded in an SVG wrapper, with optional ink tint color applied before embedding
 - Exported filename is auto-generated as `scan-YYYY-MM-DD-HHmmss`
 - File is saved directly to the configured vault folder
 - A success notice shows the exported dimensions and file size in KB
@@ -116,11 +115,10 @@ Access via Settings → Simple Scanner2.
 | Setting | Default | Description |
 |---|---|---|
 | Default export folder | `Scanned` | Vault folder where exported files are saved. Supports nested paths like `Notes/Scans`. Created automatically if it does not exist. |
-| Default export format | `PNG` | File format: PNG, JPG, or SVG. |
-| SVG tint color | `#000000` | Hex color applied to ink/dark areas when exporting as SVG. Lighter pixels remain light; darker pixels shift toward this color. Has no effect on PNG or JPG exports. |
+| Default export format | `PNG` | File format: PNG, or JPG. |
 | Optimize image size | On | Resizes the exported image so the longest edge is at most 2000 px, maintaining aspect ratio. Has no effect if the image is already smaller. |
-| Strip alpha channel | Off | Flattens transparency to a white background before exporting. Useful for JPG (which does not support transparency). Has no effect on SVG. |
-| Export quality | `0.92` | JPEG compression quality from 0.1 (smallest file) to 1.0 (best quality). Has no effect on PNG or SVG. |
+| Strip alpha channel | Off | Flattens transparency to a white background before exporting. Useful for JPG (which does not support transparency). |
+| Export quality | `0.92` | JPEG compression quality from 0.1 (smallest file) to 1.0 (best quality). Has no effect on PNG. |
 | Insert link after export | On | Inserts `![[path/to/exported/file]]` at the cursor position in the active note after a successful export. |
 | Close scanner after export | On | Automatically closes the scanner modal after a successful export. |
 
@@ -148,8 +146,6 @@ cssclasses: page-manila pen-black recolor-images
 
 This applies a manila page background with black pen styling and recolors embedded images.
 
-> **Important:** CSS-based recoloring only works with **SVG exports**. PNG exports preserve transparency but are not affected by CSS `filter` or `color` rules. For notebook theme compatibility, export as SVG and set the SVG tint color in plugin settings to match your pen color.
-
 These snippets are entirely optional. The plugin works without them.
 
 ---
@@ -175,7 +171,7 @@ jzs-new-scanner/
 │   ├── CanvasRenderer.ts          # Canvas drawing utilities
 │   ├── CropPointManager.ts        # Crop point logic and ordering
 │   ├── ImageCompress.ts           # Resize + flatten + encode pipeline
-│   ├── ImageExport.ts             # PNG / JPG / SVG export functions
+│   ├── ImageExport.ts             # PNG / JPG export functions
 │   ├── ImageTransform.ts          # Perspective crop, rotation
 │   ├── ImageUpload.ts             # File input handling
 │   ├── Interaction.ts             # Hit-testing utilities
