@@ -5,6 +5,7 @@
 */
 
 import { App, Plugin, PluginSettingTab, Setting } from "obsidian";
+import type { AspectRatioSetting } from "./Services/AspectRatio";
 import type { ExportFormat } from "./Services/ImageExport";
 import Logger from "./Services/Logger";
 
@@ -16,6 +17,7 @@ interface ScannerSettings {
 	optimizeImageSize: boolean;
 	exportQuality: number;
 	autoWhiteBalance: boolean;
+	exportAspectRatio: AspectRatioSetting;
 }
 
 const DEFAULT_SETTINGS: ScannerSettings = {
@@ -26,6 +28,7 @@ const DEFAULT_SETTINGS: ScannerSettings = {
 	optimizeImageSize: true,
 	exportQuality: 0.92,
 	autoWhiteBalance: false,
+	exportAspectRatio: "original",
 };
 
 export default class ScannerPlugin extends Plugin {
