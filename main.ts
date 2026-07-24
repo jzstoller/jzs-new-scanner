@@ -277,6 +277,23 @@ class ScannerSettingTab extends PluginSettingTab {
 					}),
 			);
 
+		new Setting(containerEl)
+			.setName("Export aspect ratio")
+			.setDesc(
+				"Stretch the exported image to a fixed aspect ratio instead of keeping its original shape. 16:9 auto-orients to a wide 16:9 for landscape scans or a tall 9:16 for portrait scans. Note: this stretches (not crops or letterboxes) the image, which can visibly distort content, especially for near-square originals.",
+			)
+			.addDropdown((dropdown) =>
+				dropdown
+					.addOption("original", "Original")
+					.addOption("16:9", "16:9")
+					.setValue(this.plugin.settings.exportAspectRatio)
+					.onChange(async (value: string) => {
+						this.plugin.settings.exportAspectRatio =
+							value as AspectRatioSetting;
+						await this.plugin.saveSettings();
+					}),
+			);
+
 		const exportQualitySetting = new Setting(containerEl)
 			.setName("Export quality")
 			.setDesc(
