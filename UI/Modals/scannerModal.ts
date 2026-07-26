@@ -5,6 +5,7 @@
 */
 
 import { App, ButtonComponent, Modal, Notice } from "obsidian";
+import type { AspectRatioSetting } from "Services/AspectRatio";
 import { uploadImageToCanvas } from "Services/ImageUpload";
 import { detectPageCorners } from "Services/PageDetection";
 import { ExportControls } from "UI/Components/ExportControls";
@@ -22,6 +23,11 @@ export class ScannerModal extends Modal {
 	private btnPhotoUpload!: ButtonComponent;
 	private btnDetectCorners!: ButtonComponent;
 	private btnCrop!: ButtonComponent;
+	private btnAspectRatio!: ButtonComponent;
+	private aspectRatioPopover!: HTMLElement;
+	private aspectRatioSelect!: HTMLSelectElement;
+	private aspectRatioPopoverOpen = false;
+	private outsideClickHandler: ((event: MouseEvent) => void) | null = null;
 	private btnExport!: ButtonComponent;
 	private btnConfirm!: ButtonComponent;
 	private btnCancel!: ButtonComponent;
@@ -92,6 +98,8 @@ export class ScannerModal extends Modal {
 			.setTooltip("Crop image")
 			.onClick(() => this.toggleCropMode());
 
+		this.setupAspectRatioControl();
+
 		if (this.initialFile) {
 			// 7/18 8p, void this.plugin.logger.info(
 			// 	`Initial file provided: ${this.initialFile.name}`,
@@ -128,6 +136,88 @@ export class ScannerModal extends Modal {
 			.setIcon("x")
 			.setTooltip("Cancel")
 			.onClick(() => this.cancelCrop());
+	}
+
+	// The aspect-ratio control is a quick per-scan override for the same
+	// plugin.settings.exportAspectRatio value the Settings tab dropdown edits —
+	// there is no separate session-only state to keep in sync.
+	private setupAspectRatioControl() {
+		const wrapper = this.buttonWrapper.createDiv("aspect-ratio-control");
+
+		this.btnAspectRatio = new ButtonComponent(wrapper)
+			.setIcon("ratio")
+			.setTooltip("Export aspect ratio")
+			.onClick(() => this.toggleAspectRatioPopover());
+
+		this.aspectRatioPopover = wrapper.createDiv("aspect-ratio-popover");
+		this.aspectRatioPopover.hide();
+
+		this.aspectRatioSelect = this.aspectRatioPopover.createEl("select", {
+			cls: "aspect-ratio-select",
+		});
+		this.aspectRatioSelect.createEl("option", {
+			text: "Original",
+			value: "original",
+		});
+		this.aspectRatioSelect.createEl("option", {
+			text: "16:9",
+			value: "16:9",
+		});
+		this.aspectRatioSelect.value = this.plugin.settings.exportAspectRatio;
+
+		this.aspectRatioSelect.onchange = async () => {
+			this.plugin.settings.exportAspectRatio = this.aspectRatioSelect
+				.value as AspectRatioSetting;
+			await this.plugin.saveSettings();
+			this.closeAspectRatioPopover();
+		};
+	}
+
+	private toggleAspectRatioPopover() {
+		if (this.aspectRatioPopoverOpen) {
+			this.closeAspectRatioPopover();
+		} else {
+			this.openAspectRatioPopover();
+		}
+	}
+
+	private openAspectRatioPopover() {
+		// Re-sync in case the plugin Settings tab changed this value while the modal was open.
+		this.aspectRatioSelect.value = this.plugin.settings.exportAspectRatio;
+		this.aspectRatioPopover.show();
+		this.aspectRatioPopoverOpen = true;
+
+		// Defer attaching the outside-click listener so the click that opened
+		// the popover doesn't immediately close it again.
+		window.setTimeout(() => {
+			this.outsideClickHandler = (event: MouseEvent) => {
+				const target = event.target as Node;
+				if (
+					!this.aspectRatioPopover.contains(target) &&
+					!this.btnAspectRatio.buttonEl.contains(target)
+				) {
+					this.closeAspectRatioPopover();
+				}
+			};
+			activeDocument.addEventListener(
+				"click",
+				this.outsideClickHandler,
+				true,
+			);
+		}, 0);
+	}
+
+	private closeAspectRatioPopover() {
+		this.aspectRatioPopover.hide();
+		this.aspectRatioPopoverOpen = false;
+		if (this.outsideClickHandler) {
+			activeDocument.removeEventListener(
+				"click",
+				this.outsideClickHandler,
+				true,
+			);
+			this.outsideClickHandler = null;
+		}
 	}
 
 	private detectAndShowCorners() {
@@ -292,6 +382,7 @@ export class ScannerModal extends Modal {
 		this.btnPhotoUpload.setDisabled(!enabled);
 		this.btnDetectCorners.setDisabled(!enabled);
 		this.btnCrop.setDisabled(!enabled);
+		this.btnAspectRatio.setDisabled(!enabled);
 		this.btnExport.setDisabled(!enabled);
 
 		// Confirmation buttons
@@ -304,6 +395,17 @@ export class ScannerModal extends Modal {
 		if (this.processingNotice) {
 			this.processingNotice.hide();
 			this.processingNotice = null;
+		}
+
+		// Clean up the aspect-ratio popover's outside-click listener so it
+		// doesn't leak past this modal's lifetime.
+		if (this.outsideClickHandler) {
+			activeDocument.removeEventListener(
+				"click",
+				this.outsideClickHandler,
+				true,
+			);
+			this.outsideClickHandler = null;
 		}
 
 		// Clean up export controls
