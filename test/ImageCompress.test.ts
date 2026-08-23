@@ -67,4 +67,39 @@ describe("compressCanvas", () => {
 		expect(result.height).toBe(2000);
 		expect(result.width).toBe(Math.round(2000 * (9 / 16)));
 	});
+
+	it("forces landscape on a portrait input end-to-end, bypassing auto-detection", async () => {
+		const canvas = makeCanvas(3000, 4000); // 3:4 portrait, long edge 4000
+		const result = await compressCanvas(canvas, {
+			maxDimension: 2000,
+			outputMime: "image/png",
+			aspectRatio: "16:9",
+			aspectRatioOrientation: "landscape",
+		});
+		// Long edge (2000, from the maxDimension clamp) is mapped to width
+		// since orientation is forced wide, despite the portrait source.
+		expect(result.width).toBe(2000);
+		expect(result.height).toBe(Math.round(2000 * (9 / 16)));
+		expect(result.width).toBeGreaterThan(result.height);
+	});
+
+	it("reproduces existing Step-2 results exactly when aspectRatioOrientation is omitted", async () => {
+		const canvas = makeCanvas(3000, 4000); // 3:4 portrait
+		const withoutOrientation = await compressCanvas(canvas, {
+			maxDimension: 2000,
+			outputMime: "image/png",
+			aspectRatio: "16:9",
+		});
+		const withUndefinedOrientation = await compressCanvas(canvas, {
+			maxDimension: 2000,
+			outputMime: "image/png",
+			aspectRatio: "16:9",
+			aspectRatioOrientation: undefined,
+		});
+		expect(withUndefinedOrientation.width).toBe(withoutOrientation.width);
+		expect(withUndefinedOrientation.height).toBe(withoutOrientation.height);
+		expect(withUndefinedOrientation.byteLength).toBe(
+			withoutOrientation.byteLength,
+		);
+	});
 });

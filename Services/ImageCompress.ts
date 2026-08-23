@@ -13,6 +13,7 @@
 
 import {
 	stretchCanvasToAspectRatio,
+	type AspectRatioOrientation,
 	type AspectRatioSetting,
 } from "./AspectRatio";
 
@@ -22,6 +23,7 @@ export interface CompressOptions {
 	backgroundColor?: string;
 	outputMime?: "image/jpeg" | "image/png";
 	aspectRatio?: AspectRatioSetting;
+	aspectRatioOrientation?: AspectRatioOrientation;
 }
 
 export interface CompressResult {
@@ -74,6 +76,7 @@ export async function compressCanvas(
 	const finalCanvas = stretchCanvasToAspectRatio(
 		out,
 		opts.aspectRatio ?? "original",
+		opts.aspectRatioOrientation,
 	);
 
 	const requestedMime = opts.outputMime ?? "image/jpeg";

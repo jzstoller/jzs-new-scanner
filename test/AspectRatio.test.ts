@@ -75,4 +75,48 @@ describe("stretchCanvasToAspectRatio", () => {
 		const result = stretchCanvasToAspectRatio(canvas, "16:9");
 		expect(result).toBe(canvas);
 	});
+
+	it("forces landscape on a portrait source, bypassing auto-detection", () => {
+		const canvas = makeCanvas(1500, 2000); // 3:4 portrait
+		const result = stretchCanvasToAspectRatio(canvas, "16:9", "landscape");
+		expect(result).not.toBe(canvas);
+		expect(result.width).toBe(2000); // long edge anchored, mapped to width
+		expect(result.height).toBe(Math.round(2000 * (9 / 16)));
+		expect(result.width).toBeGreaterThan(result.height); // wide result
+	});
+
+	it("forces portrait on a landscape source, bypassing auto-detection", () => {
+		const canvas = makeCanvas(2000, 1500); // 4:3 landscape
+		const result = stretchCanvasToAspectRatio(canvas, "16:9", "portrait");
+		expect(result).not.toBe(canvas);
+		expect(result.height).toBe(2000); // long edge anchored, mapped to height
+		expect(result.width).toBe(Math.round(2000 * (9 / 16)));
+		expect(result.height).toBeGreaterThan(result.width); // tall result
+	});
+
+	it("matches all default 'auto' expectations when explicitly passed 'auto'", () => {
+		const landscape = makeCanvas(2000, 1500);
+		const landscapeAuto = stretchCanvasToAspectRatio(
+			landscape,
+			"16:9",
+			"auto",
+		);
+		expect(landscapeAuto.width).toBe(2000);
+		expect(landscapeAuto.height).toBe(1125);
+
+		const portrait = makeCanvas(1500, 2000);
+		const portraitAuto = stretchCanvasToAspectRatio(portrait, "16:9", "auto");
+		expect(portraitAuto.height).toBe(2000);
+		expect(portraitAuto.width).toBe(1125);
+
+		const original = makeCanvas(2000, 1500);
+		expect(stretchCanvasToAspectRatio(original, "original", "auto")).toBe(
+			original,
+		);
+
+		const matching = makeCanvas(1600, 900);
+		expect(stretchCanvasToAspectRatio(matching, "16:9", "auto")).toBe(
+			matching,
+		);
+	});
 });
