@@ -71,7 +71,7 @@ BRAT keeps the plugin updated automatically with each new release.
 > **Warning:** Manual installation bypasses BRAT's update mechanism. You will need to re-download files for each update.
 
 1. Download `main.js`, `manifest.json`, and `styles.css` from the [latest GitHub release](https://github.com/jzstoller/jzs-new-scanner/releases/latest)
-2. Copy them to `<vault>/.obsidian/plugins/jzs-new-scanner/`
+2. Copy them to your vault at `.obsidian/plugins/jzs-new-scanner/`
 3. Reload Obsidian
 4. Enable the plugin in Settings → Community Plugins
 
@@ -196,7 +196,7 @@ npm run test:coverage  # Coverage report
 ### Releasing
 
 ```bash
-bash bump.sh <version>   # Bumps version, builds, commits, tags, pushes, creates GitHub release
+bash bump.sh 1.4.1   # Bumps version, builds, commits, tags, pushes, creates GitHub release
 ```
 
 ### Code Style

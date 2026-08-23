@@ -4,7 +4,8 @@
   See THIRD_PARTY_NOTICES/obsidian-scan-sketch/ for details.
 */
 
-import { App, Plugin, PluginSettingTab, Setting } from "obsidian";
+import { App, Plugin, PluginSettingTab } from "obsidian";
+import type { SettingDefinitionItem } from "obsidian";
 import type {
 	AspectRatioOrientation,
 	AspectRatioSetting,
@@ -219,170 +220,102 @@ class ScannerSettingTab extends PluginSettingTab {
 		this.plugin = plugin;
 	}
 
-	display(): void {
-		const { containerEl } = this;
+	getSettingDefinitions(): SettingDefinitionItem[] {
+		return [
+			{
+				name: "Default export folder",
+				desc: "Folder path where scanned images will be saved (e.g., 'Scanned' or 'Notes/Scans')",
+				control: {
+					type: "text",
+					key: "exportDefaultFolder",
+					placeholder: "Scanned",
+				},
+			},
+			{
+				name: "Default export format",
+				desc: "File format for exported scanned images",
+				control: {
+					type: "dropdown",
+					key: "exportDefaultFormat",
+					options: { png: "PNG", jpg: "JPG" },
+				},
+			},
+			{
+				name: "Auto white balance",
+				desc: "Automatically correct color cast before exporting, using the brightest areas of the scan as a white reference. Helps fix yellow/blue tinted scans.",
+				control: { type: "toggle", key: "autoWhiteBalance" },
+			},
+			{
+				name: "Optimize image size",
+				desc: "Resize exported image so the longest edge is 2000 px (maintains aspect ratio). Has no effect if the image is already smaller.",
+				control: { type: "toggle", key: "optimizeImageSize" },
+			},
+			{
+				name: "Export aspect ratio",
+				desc: "Stretch the exported image to a fixed aspect ratio instead of keeping its original shape. 16:9 auto-orients to a wide 16:9 for landscape scans or a tall 9:16 for portrait scans. Note: this stretches (not crops or letterboxes) the image, which can visibly distort content, especially for near-square originals.",
+				control: {
+					type: "dropdown",
+					key: "exportAspectRatio",
+					options: { original: "Original", "16:9": "16:9" },
+				},
+			},
+			{
+				name: "Aspect ratio orientation",
+				desc: "Auto picks a wide result for landscape scans and a tall result for portrait scans. Forcing an orientation opposite a scan's natural shape (e.g. Force landscape on a portrait scan) will look heavily squashed or stretched compared to Auto — that's expected given the stretch-not-crop design, not a bug.",
+				// Only relevant once a non-"original" ratio is chosen; re-evaluated via refreshDomState() in setControlValue.
+				visible: () =>
+					this.plugin.settings.exportAspectRatio !== "original",
+				control: {
+					type: "dropdown",
+					key: "exportAspectRatioOrientation",
+					options: {
+						auto: "Auto",
+						landscape: "Force landscape",
+						portrait: "Force portrait",
+					},
+				},
+			},
+			{
+				name: "Export quality",
+				desc: "Compression quality for JPG exports (0.1 = smallest, 1.0 = best). Has no effect on PNG",
+				control: {
+					type: "slider",
+					key: "exportQuality",
+					min: 0.1,
+					max: 1.0,
+					step: 0.05,
+					displayFormat: (value) => value.toFixed(2),
+				},
+			},
+			{
+				name: "Insert link after export",
+				desc: "Automatically insert a markdown image link into the active note after exporting",
+				control: { type: "toggle", key: "insertLinkAfterExport" },
+			},
+			{
+				name: "Close scanner after export",
+				desc: "Automatically close the scanner window after successfully exporting an image",
+				control: { type: "toggle", key: "closeAfterExport" },
+			},
+		];
+	}
 
-		containerEl.empty();
+	getControlValue(key: string): unknown {
+		return (this.plugin.settings as unknown as Record<string, unknown>)[
+			key
+		];
+	}
 
-		new Setting(containerEl)
-			.setName("Default export folder")
-			.setDesc(
-				"Folder path where scanned images will be saved (e.g., 'Scanned' or 'Notes/Scans')",
-			)
-			.addText((text) =>
-				text
-					.setPlaceholder("Scanned")
-					.setValue(this.plugin.settings.exportDefaultFolder)
-					.onChange(async (value) => {
-						this.plugin.settings.exportDefaultFolder =
-							value || "Scanned";
-						await this.plugin.saveSettings();
-					}),
-			);
-
-		new Setting(containerEl)
-			.setName("Default export format")
-			.setDesc("File format for exported scanned images")
-			.addDropdown((dropdown) =>
-				dropdown
-					.addOption("png", "PNG")
-					.addOption("jpg", "JPG")
-					.setValue(this.plugin.settings.exportDefaultFormat)
-					.onChange(async (value: string) => {
-						this.plugin.settings.exportDefaultFormat =
-							value as ExportFormat;
-						await this.plugin.saveSettings();
-					}),
-			);
-
-		new Setting(containerEl)
-			.setName("Auto white balance")
-			.setDesc(
-				"Automatically correct color cast before exporting, using the brightest areas of the scan as a white reference. Helps fix yellow/blue tinted scans.",
-			)
-			.addToggle((toggle) =>
-				toggle
-					.setValue(this.plugin.settings.autoWhiteBalance)
-					.onChange(async (value) => {
-						this.plugin.settings.autoWhiteBalance = value;
-						await this.plugin.saveSettings();
-					}),
-			);
-		new Setting(containerEl)
-			.setName("Optimize image size")
-			.setDesc(
-				"Resize exported image so the longest edge is 2000 px (maintains aspect ratio). Has no effect if the image is already smaller.",
-			)
-			.addToggle((toggle) =>
-				toggle
-					.setValue(this.plugin.settings.optimizeImageSize)
-					.onChange(async (value) => {
-						this.plugin.settings.optimizeImageSize = value;
-						await this.plugin.saveSettings();
-					}),
-			);
-
-		new Setting(containerEl)
-			.setName("Export aspect ratio")
-			.setDesc(
-				"Stretch the exported image to a fixed aspect ratio instead of keeping its original shape. 16:9 auto-orients to a wide 16:9 for landscape scans or a tall 9:16 for portrait scans. Note: this stretches (not crops or letterboxes) the image, which can visibly distort content, especially for near-square originals.",
-			)
-			.addDropdown((dropdown) =>
-				dropdown
-					.addOption("original", "Original")
-					.addOption("16:9", "16:9")
-					.setValue(this.plugin.settings.exportAspectRatio)
-					.onChange(async (value: string) => {
-						this.plugin.settings.exportAspectRatio =
-							value as AspectRatioSetting;
-						await this.plugin.saveSettings();
-						this.display();
-					}),
-			);
-
-		if (this.plugin.settings.exportAspectRatio !== "original") {
-			new Setting(containerEl)
-				.setName("Aspect ratio orientation")
-				.setDesc(
-					"Auto picks a wide result for landscape scans and a tall result for portrait scans. Forcing an orientation opposite a scan's natural shape (e.g. Force landscape on a portrait scan) will look heavily squashed or stretched compared to Auto — that's expected given the stretch-not-crop design, not a bug.",
-				)
-				.addDropdown((dropdown) =>
-					dropdown
-						.addOption("auto", "Auto")
-						.addOption("landscape", "Force landscape")
-						.addOption("portrait", "Force portrait")
-						.setValue(this.plugin.settings.exportAspectRatioOrientation)
-						.onChange(async (value: string) => {
-							this.plugin.settings.exportAspectRatioOrientation =
-								value as AspectRatioOrientation;
-							await this.plugin.saveSettings();
-						}),
-				);
+	async setControlValue(key: string, value: unknown): Promise<void> {
+		// Preserve the old fallback-to-"Scanned" behavior when the folder field is cleared.
+		if (key === "exportDefaultFolder" && !value) {
+			value = "Scanned";
 		}
-
-		const exportQualitySetting = new Setting(containerEl)
-			.setName("Export quality")
-			.setDesc(
-				"Compression quality for JPG exports (0.1 = smallest, 1.0 = best). Has no effect on PNG",
-			)
-			.addSlider((slider) =>
-				slider
-					.setLimits(0.1, 1.0, 0.05)
-					.setValue(this.plugin.settings.exportQuality)
-					.onChange(async (value) => {
-						this.plugin.settings.exportQuality = value;
-						await this.plugin.saveSettings();
-					}),
-			);
-
-		const valueDisplay = exportQualitySetting.controlEl.createEl("span", {
-			text: this.plugin.settings.exportQuality.toFixed(2),
-			cls: "export-quality-value",
-		});
-		//valueDisplay.style.marginLeft = "12px";
-		//valueDisplay.style.fontWeight = "bold";
-		//valueDisplay.style.color = "var(--text-accent)";
-
-		// Hook into the slider's input event to update display while dragging
-		const sliderInput = exportQualitySetting.controlEl.querySelector(
-			'input[type="range"]',
-		);
-		if (sliderInput instanceof HTMLInputElement) {
-			// safe
+		(this.plugin.settings as unknown as Record<string, unknown>)[key] =
+			value;
+		await this.plugin.saveSettings();
+		if (key === "exportAspectRatio") {
+			this.refreshDomState();
 		}
-		if (sliderInput) {
-			sliderInput.addEventListener("input", (e) => {
-				const target = e.target as HTMLInputElement;
-				valueDisplay.textContent = parseFloat(target.value).toFixed(2);
-			});
-		}
-
-		new Setting(containerEl)
-			.setName("Insert link after export")
-			.setDesc(
-				"Automatically insert a markdown image link into the active note after exporting",
-			)
-			.addToggle((toggle) =>
-				toggle
-					.setValue(this.plugin.settings.insertLinkAfterExport)
-					.onChange(async (value) => {
-						this.plugin.settings.insertLinkAfterExport = value;
-						await this.plugin.saveSettings();
-					}),
-			);
-
-		new Setting(containerEl)
-			.setName("Close scanner after export")
-			.setDesc(
-				"Automatically close the scanner window after successfully exporting an image",
-			)
-			.addToggle((toggle) =>
-				toggle
-					.setValue(this.plugin.settings.closeAfterExport)
-					.onChange(async (value) => {
-						this.plugin.settings.closeAfterExport = value;
-						await this.plugin.saveSettings();
-					}),
-			);
 	}
 }
