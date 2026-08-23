@@ -142,6 +142,9 @@ If your plugin does not need CSS, delete this file.
 	padding: 8px;
 	z-index: 50;
 	min-width: 140px;
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
 }
 
 .aspect-ratio-select {
@@ -154,16 +157,32 @@ If your plugin does not need CSS, delete this file.
 	color: var(--text-normal);
 }
 
+.aspect-ratio-orientation-row {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+
+.aspect-ratio-orientation-label {
+	font-size: 11px;
+	color: var(--text-muted);
+}
+
 /* Larger tap target and avoid clipping on small phone widths */
 @media (max-width: 480px) {
 	.aspect-ratio-popover {
 		min-width: 130px;
 		padding: 6px;
+		gap: 5px;
 	}
 
 	.aspect-ratio-select {
 		font-size: 14px;
 		padding: 8px;
+	}
+
+	.aspect-ratio-orientation-label {
+		font-size: 10px;
 	}
 }
 

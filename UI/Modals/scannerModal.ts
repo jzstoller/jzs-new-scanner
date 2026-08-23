@@ -5,7 +5,10 @@
 */
 
 import { App, ButtonComponent, Modal, Notice } from "obsidian";
-import type { AspectRatioSetting } from "Services/AspectRatio";
+import type {
+	AspectRatioOrientation,
+	AspectRatioSetting,
+} from "Services/AspectRatio";
 import { uploadImageToCanvas } from "Services/ImageUpload";
 import { detectPageCorners } from "Services/PageDetection";
 import { ExportControls } from "UI/Components/ExportControls";
@@ -26,6 +29,8 @@ export class ScannerModal extends Modal {
 	private btnAspectRatio!: ButtonComponent;
 	private aspectRatioPopover!: HTMLElement;
 	private aspectRatioSelect!: HTMLSelectElement;
+	private orientationRow!: HTMLElement;
+	private orientationSelect!: HTMLSelectElement;
 	private aspectRatioPopoverOpen = false;
 	private outsideClickHandler: ((event: MouseEvent) => void) | null = null;
 	private btnExport!: ButtonComponent;
@@ -169,8 +174,51 @@ export class ScannerModal extends Modal {
 			this.plugin.settings.exportAspectRatio = this.aspectRatioSelect
 				.value as AspectRatioSetting;
 			await this.plugin.saveSettings();
-			this.closeAspectRatioPopover();
+			this.updateOrientationVisibility();
 		};
+
+		this.orientationRow = this.aspectRatioPopover.createDiv(
+			"aspect-ratio-orientation-row",
+		);
+		this.orientationRow.createEl("label", {
+			text: "Orientation",
+			cls: "aspect-ratio-orientation-label",
+		});
+		this.orientationSelect = this.orientationRow.createEl("select", {
+			cls: "aspect-ratio-select",
+		});
+		this.orientationSelect.createEl("option", {
+			text: "Auto",
+			value: "auto",
+		});
+		this.orientationSelect.createEl("option", {
+			text: "Force landscape",
+			value: "landscape",
+		});
+		this.orientationSelect.createEl("option", {
+			text: "Force portrait",
+			value: "portrait",
+		});
+		this.orientationSelect.value =
+			this.plugin.settings.exportAspectRatioOrientation;
+
+		this.orientationSelect.onchange = async () => {
+			this.plugin.settings.exportAspectRatioOrientation = this
+				.orientationSelect.value as AspectRatioOrientation;
+			await this.plugin.saveSettings();
+		};
+
+		this.updateOrientationVisibility();
+	}
+
+	// The orientation dropdown is only relevant once a non-"original" ratio is
+	// chosen, mirroring the Settings tab's conditional visibility.
+	private updateOrientationVisibility() {
+		if (this.aspectRatioSelect.value === "original") {
+			this.orientationRow.hide();
+		} else {
+			this.orientationRow.show();
+		}
 	}
 
 	private toggleAspectRatioPopover() {
@@ -182,8 +230,11 @@ export class ScannerModal extends Modal {
 	}
 
 	private openAspectRatioPopover() {
-		// Re-sync in case the plugin Settings tab changed this value while the modal was open.
+		// Re-sync in case the plugin Settings tab changed these values while the modal was open.
 		this.aspectRatioSelect.value = this.plugin.settings.exportAspectRatio;
+		this.orientationSelect.value =
+			this.plugin.settings.exportAspectRatioOrientation;
+		this.updateOrientationVisibility();
 		this.aspectRatioPopover.show();
 		this.aspectRatioPopoverOpen = true;
 
