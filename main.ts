@@ -296,8 +296,29 @@ class ScannerSettingTab extends PluginSettingTab {
 						this.plugin.settings.exportAspectRatio =
 							value as AspectRatioSetting;
 						await this.plugin.saveSettings();
+						this.display();
 					}),
 			);
+
+		if (this.plugin.settings.exportAspectRatio !== "original") {
+			new Setting(containerEl)
+				.setName("Aspect ratio orientation")
+				.setDesc(
+					"Auto picks a wide result for landscape scans and a tall result for portrait scans. Forcing an orientation opposite to a scan's natural shape stretches it more aggressively than Auto mode.",
+				)
+				.addDropdown((dropdown) =>
+					dropdown
+						.addOption("auto", "Auto")
+						.addOption("landscape", "Force landscape")
+						.addOption("portrait", "Force portrait")
+						.setValue(this.plugin.settings.exportAspectRatioOrientation)
+						.onChange(async (value: string) => {
+							this.plugin.settings.exportAspectRatioOrientation =
+								value as AspectRatioOrientation;
+							await this.plugin.saveSettings();
+						}),
+				);
+		}
 
 		const exportQualitySetting = new Setting(containerEl)
 			.setName("Export quality")
