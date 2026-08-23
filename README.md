@@ -120,8 +120,8 @@ Access via Settings → Simple Scanner2.
 |---|---|---|
 | Default export folder | `Scanned` | Vault folder where exported files are saved. Supports nested paths like `Notes/Scans`. Created automatically if it does not exist. |
 | Default export format | `PNG` | File format: PNG, or JPG. |
+| Auto white balance | Off | Automatically correct color cast before exporting, using the brightest areas of the scan as a white reference. Helps fix yellow/blue tinted scans. |
 | Optimize image size | On | Resizes the exported image so the longest edge is at most 2000 px, maintaining aspect ratio. Has no effect if the image is already smaller. |
-| Strip alpha channel | Off | Flattens transparency to a white background before exporting. Useful for JPG (which does not support transparency). |
 | Export aspect ratio | `Original` | Stretches the exported image to a fixed ratio: `Original` (does nothing) or `16:9`. Auto-orients to wide 16:9 for landscape scans and tall 9:16 for portrait scans. |
 | Aspect ratio orientation | `Auto` | Only shown when Export aspect ratio is not `Original`. `Auto` uses the auto-orientation above; `Force landscape` / `Force portrait` override it regardless of the scan's natural shape. |
 | Export quality | `0.92` | JPEG compression quality from 0.1 (smallest file) to 1.0 (best quality). Has no effect on PNG. |
