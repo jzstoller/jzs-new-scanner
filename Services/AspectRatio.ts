@@ -23,7 +23,7 @@ const RATIO_MATCH_TOLERANCE = 0.01;
  * exactly fill the target dimensions, which may visibly distort the image.
  *
  * @param canvas - Source canvas (typically already downscaled to its final export size)
- * @param ratio - "original" is a no-op; "16:9" stretches to a 16:9 or 9:16 target
+ * @param ratio - "original" does nothing; "16:9" stretches to a 16:9 or 9:16 target
  * @param orientation - "auto" (default) picks 16:9 for landscape sources and 9:16
  *   for portrait sources; "landscape" or "portrait" forces that orientation
  *   regardless of the source's actual shape

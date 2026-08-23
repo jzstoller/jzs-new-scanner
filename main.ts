@@ -304,7 +304,7 @@ class ScannerSettingTab extends PluginSettingTab {
 			new Setting(containerEl)
 				.setName("Aspect ratio orientation")
 				.setDesc(
-					"Auto picks a wide result for landscape scans and a tall result for portrait scans. Forcing an orientation opposite to a scan's natural shape stretches it more aggressively than Auto mode.",
+					"Auto picks a wide result for landscape scans and a tall result for portrait scans. Forcing an orientation opposite a scan's natural shape (e.g. Force landscape on a portrait scan) will look heavily squashed or stretched compared to Auto — that's expected given the stretch-not-crop design, not a bug.",
 				)
 				.addDropdown((dropdown) =>
 					dropdown

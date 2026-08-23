@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { stretchCanvasToAspectRatio } from "../Services/AspectRatio";
 
 // These tests focus purely on the dimension math: drawImage is mocked as a
-// no-op in test/setup.ts, so we only assert on the returned canvas's size
+// stub in test/setup.ts, so we only assert on the returned canvas's size
 // and identity, not pixel content.
 function makeCanvas(width: number, height: number): HTMLCanvasElement {
 	const canvas = document.createElement("canvas");
@@ -47,7 +47,7 @@ describe("stretchCanvasToAspectRatio", () => {
 		expect(result.height).toBe(563); // round(1000 * 9/16)
 	});
 
-	it("is a no-op when the source already matches the target ratio", () => {
+	it("does nothing when the source already matches the target ratio", () => {
 		const canvas = makeCanvas(1600, 900); // exactly 16:9
 		const result = stretchCanvasToAspectRatio(canvas, "16:9");
 		expect(result).toBe(canvas);
@@ -55,7 +55,7 @@ describe("stretchCanvasToAspectRatio", () => {
 		expect(result.height).toBe(900);
 	});
 
-	it("is a no-op when the portrait source already matches 9:16", () => {
+	it("does nothing when the portrait source already matches 9:16", () => {
 		const canvas = makeCanvas(900, 1600); // exactly 9:16
 		const result = stretchCanvasToAspectRatio(canvas, "16:9");
 		expect(result).toBe(canvas);
@@ -92,6 +92,31 @@ describe("stretchCanvasToAspectRatio", () => {
 		expect(result.height).toBe(2000); // long edge anchored, mapped to height
 		expect(result.width).toBe(Math.round(2000 * (9 / 16)));
 		expect(result.height).toBeGreaterThan(result.width); // tall result
+	});
+
+	it("does nothing when forcing landscape on a source that already matches 16:9", () => {
+		const canvas = makeCanvas(1600, 900); // exactly 16:9 landscape
+		const result = stretchCanvasToAspectRatio(canvas, "16:9", "landscape");
+		expect(result).toBe(canvas);
+		expect(result.width).toBe(1600);
+		expect(result.height).toBe(900);
+	});
+
+	it("does nothing when forcing portrait on a source that already matches 9:16", () => {
+		const canvas = makeCanvas(900, 1600); // exactly 9:16 portrait
+		const result = stretchCanvasToAspectRatio(canvas, "16:9", "portrait");
+		expect(result).toBe(canvas);
+		expect(result.width).toBe(900);
+		expect(result.height).toBe(1600);
+	});
+
+	it("still stretches when the forced orientation opposes the source's already-matching ratio", () => {
+		// Exactly 9:16 portrait, but forcing landscape means the target is
+		// 16:9 instead — this should still stretch despite already matching 9:16.
+		const canvas = makeCanvas(900, 1600);
+		const result = stretchCanvasToAspectRatio(canvas, "16:9", "landscape");
+		expect(result).not.toBe(canvas);
+		expect(result.width).toBeGreaterThan(result.height);
 	});
 
 	it("matches all default 'auto' expectations when explicitly passed 'auto'", () => {

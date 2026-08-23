@@ -186,6 +186,10 @@ export class ScannerModal extends Modal {
 		});
 		this.orientationSelect = this.orientationRow.createEl("select", {
 			cls: "aspect-ratio-select",
+			attr: {
+				title:
+					"Forcing an orientation opposite a scan's natural shape (e.g. Force landscape on a portrait scan) will look heavily squashed or stretched compared to Auto — expected, not a bug.",
+			},
 		});
 		this.orientationSelect.createEl("option", {
 			text: "Auto",

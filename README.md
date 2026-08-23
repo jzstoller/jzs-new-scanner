@@ -1,6 +1,6 @@
 # Simple Scanner2
 
-An Obsidian plugin for scanning and processing handwritten notes and documents. Capture or upload a photo, let the plugin automatically detect the page corners, apply perspective correction, and save the result directly to your vault.
+An Obsidian plugin for scanning and processing images and documents. Capture or upload a photo, let the plugin automatically detect the page corners, apply perspective correction, and save the result directly to your vault.
 
 ## Features
 
@@ -26,10 +26,6 @@ An Obsidian plugin for scanning and processing handwritten notes and documents. 
 - Drag any handle to define an arbitrary quadrilateral
 - Confirm to apply perspective correction
 
-### HiDPI / Retina Support
-- Canvas is sized using `devicePixelRatio` so rendering is sharp on Retina, 4K, and high-DPI mobile displays
-- Image loading uses `img.decode()` followed by `requestAnimationFrame` to guarantee pixel data and layout dimensions are both ready before drawing — fixes intermittent blank-canvas issues on iOS
-
 ### Export
 - Export happens on a single button click with no modal — all options are configured in Settings
 - PNG: lossless, preserves transparency
@@ -40,10 +36,14 @@ An Obsidian plugin for scanning and processing handwritten notes and documents. 
 - Optionally inserts `![[path/to/file]]` at the cursor in the active note
 - Optionally closes the scanner modal after export
 
-### Touch and Mouse Support
-- Mouse: 20 px hit radius on crop handles
-- Touch: 30 px hit radius on crop handles for easier finger targeting
-- Touch move and touchstart use `preventDefault` to block scroll interference
+### Export Aspect Ratio (16:9)
+- Optionally stretches the exported image to a fixed 16:9 aspect ratio instead of keeping its original shape
+- **Auto** orientation (default) picks a wide 16:9 result for landscape scans and a tall 9:16 result for portrait scans, so a single "16:9" setting adapts to either shape
+- Orientation can be forced to **Force landscape** or **Force portrait** to override that detection — useful when you always want the same output shape regardless of how the source was scanned
+- This stretches (not crops or letterboxes) the image to fill the target dimensions exactly; forcing an orientation opposite a scan's natural shape (e.g. Force landscape on a portrait scan) will look noticeably more squashed/stretched than Auto — this is expected, not a bug
+- If the source already matches the target ratio (within 1% tolerance), the image is left untouched
+- A quick-override icon button (ratio icon) next to the export button in the scanner modal opens a small popover with the same two dropdowns (ratio + orientation) as the Settings tab — both read/write the same persisted settings, so changing it in one place is reflected in the other
+- **Why this exists:** this was added to fix photos of 16:9 PowerPoint/Keynote slides that get captured at a distorted angle or aspect ratio — stretching back to 16:9 restores the correct proportions of the slide content. Since it stretches to a fixed 16:9/9:16 ratio, it won't currently produce an undistorted result for 4:3 slides — that ratio isn't supported yet
 
 ---
 
@@ -106,6 +106,10 @@ While the modal is open, tap the image button (gallery icon) to replace the curr
 
 Tap the scan button (scan icon) to re-run auto corner detection on the current image at any time.
 
+### Quick Aspect Ratio Override
+
+Tap the ratio icon in the scanner modal to open a popover with two dropdowns: aspect ratio (Original / 16:9) and orientation (Auto / Force landscape / Force portrait). The orientation dropdown only appears once a ratio other than Original is selected. Both controls edit the same settings used by the Settings tab, so there's no separate per-scan-only state — changes made here persist as your new defaults.
+
 ---
 
 ## Settings
@@ -118,35 +122,11 @@ Access via Settings → Simple Scanner2.
 | Default export format | `PNG` | File format: PNG, or JPG. |
 | Optimize image size | On | Resizes the exported image so the longest edge is at most 2000 px, maintaining aspect ratio. Has no effect if the image is already smaller. |
 | Strip alpha channel | Off | Flattens transparency to a white background before exporting. Useful for JPG (which does not support transparency). |
+| Export aspect ratio | `Original` | Stretches the exported image to a fixed ratio: `Original` (does nothing) or `16:9`. Auto-orients to wide 16:9 for landscape scans and tall 9:16 for portrait scans. |
+| Aspect ratio orientation | `Auto` | Only shown when Export aspect ratio is not `Original`. `Auto` uses the auto-orientation above; `Force landscape` / `Force portrait` override it regardless of the scan's natural shape. |
 | Export quality | `0.92` | JPEG compression quality from 0.1 (smallest file) to 1.0 (best quality). Has no effect on PNG. |
 | Insert link after export | On | Inserts `![[path/to/exported/file]]` at the cursor position in the active note after a successful export. |
 | Close scanner after export | On | Automatically closes the scanner modal after a successful export. |
-
----
-
-## Optional: Notebook Styling with CSS Snippets
-
-For notebook-themed backgrounds and pen colors, you can optionally add CSS snippets from the [Obsidian-Notebook-Themes](https://github.com/CyanVoxel/Obsidian-Notebook-Themes) repository by [@CyanVoxel](https://github.com/CyanVoxel).
-
-### How to Add
-
-1. Visit the [Obsidian-Notebook-Themes repository](https://github.com/CyanVoxel/Obsidian-Notebook-Themes)
-2. Download the CSS snippets you want
-3. In Obsidian: Settings → Appearance → CSS snippets → open snippets folder
-4. Copy the CSS files into that folder
-5. Return to Obsidian and enable the snippets
-
-### Example
-
-```markdown
----
-cssclasses: page-manila pen-black recolor-images
----
-```
-
-This applies a manila page background with black pen styling and recolors embedded images.
-
-These snippets are entirely optional. The plugin works without them.
 
 ---
 
@@ -154,8 +134,6 @@ These snippets are entirely optional. The plugin works without them.
 
 - Requires Obsidian **1.8.10** or later (`setIcon` and `setTooltip` on `ButtonComponent` require this version)
 - `isDesktopOnly: false` — works on iOS and Android
-- Uses `activeDocument` for canvas creation to support Obsidian popout windows
-- Uses `img.decode()` (not `onload`) to guarantee full pixel decode before drawing, avoiding blank-canvas issues on iOS WKWebView
 - Perspective transform uses the [perspective-transform](https://github.com/jlouthan/perspective-transform) library with flat 8-number coordinate arrays
 - Corner detection downscales to a maximum of 800 px on the long edge for performance, then scales results back to full resolution
 - Export canvas is built at full native image resolution; resize (if enabled) happens at canvas creation time so the encoder never processes an oversized image
@@ -168,6 +146,7 @@ These snippets are entirely optional. The plugin works without them.
 jzs-new-scanner/
 ├── main.ts                        # Plugin entry point, settings
 ├── Services/
+│   ├── AspectRatio.ts             # 16:9 aspect-ratio stretch helper (auto/forced orientation)
 │   ├── CanvasRenderer.ts          # Canvas drawing utilities
 │   ├── CropPointManager.ts        # Crop point logic and ordering
 │   ├── ImageCompress.ts           # Resize + flatten + encode pipeline
@@ -241,8 +220,7 @@ bash bump.sh <version>   # Bumps version, builds, commits, tags, pushes, creates
 
 This plugin is licensed under the MIT License.
 
-It includes portions of code from the `obsidian-scan-sketch` plugin by Show Wai Yan,
-which is licensed under the Zero-Clause BSD (0BSD) License.
+It includes portions of code from the `obsidian-scan-sketch` plugin by Show Wai Yan, which is licensed under the Zero-Clause BSD (0BSD) License.
 
 The original 0BSD license and copyright notice are preserved in:
 
@@ -254,4 +232,3 @@ THIRD_PARTY_NOTICES/obsidian-scan-sketch/
 
 - Built with the [Obsidian API](https://github.com/obsidianmd/obsidian-api)
 - Perspective correction via [perspective-transform](https://github.com/jlouthan/perspective-transform) by [@jlouthan](https://github.com/jlouthan)
-- Optional notebook theme CSS snippets from [Obsidian-Notebook-Themes](https://github.com/CyanVoxel/Obsidian-Notebook-Themes) by [@CyanVoxel](https://github.com/CyanVoxel) (v2.2.3)
