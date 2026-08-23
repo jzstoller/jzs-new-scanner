@@ -54,6 +54,7 @@ export class ExportControls {
 			optimizeImageSize,
 			exportQuality,
 			exportAspectRatio,
+			exportAspectRatioOrientation,
 		} = this.plugin.settings;
 
 		const processingNotice = new Notice("Exporting...", 0);
@@ -83,6 +84,7 @@ export class ExportControls {
 				quality: exportQuality,
 				outputMime: requestedMime,
 				aspectRatio: exportAspectRatio,
+				aspectRatioOrientation: exportAspectRatioOrientation,
 			});
 
 			const filename = generateDefaultFilename() + "." + result.ext;
