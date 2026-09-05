@@ -1,4 +1,4 @@
-# Simple Scanner2
+# Simple Scanner
 
 An Obsidian plugin for scanning and processing images and documents. Capture or upload a photo, let the plugin automatically detect the page corners, apply perspective correction, and save the result directly to your vault.
 
@@ -51,7 +51,7 @@ An Obsidian plugin for scanning and processing images and documents. Capture or 
 
 ### From Obsidian Community Plugins (Coming Soon)
 1. Open Obsidian Settings → Community Plugins
-2. Search for "Simple Scanner2"
+2. Search for "Simple Scanner"
 3. Click Install, then Enable
 
 ### Beta Testing with BRAT (Recommended)
@@ -60,9 +60,9 @@ An Obsidian plugin for scanning and processing images and documents. Capture or 
 
 1. Install [BRAT](https://github.com/TfTHacker/obsidian42-brat) from Community Plugins
 2. Open BRAT settings → "Add Beta plugin"
-3. Enter: `jzstoller/jzs-new-scanner`
+3. Enter: `jzstoller/jzs-simple-scanner`
 4. Click "Add Plugin"
-5. Go to Settings → Community Plugins and enable "Simple Scanner2"
+5. Go to Settings → Community Plugins and enable "Simple Scanner"
 
 BRAT keeps the plugin updated automatically with each new release.
 
@@ -70,8 +70,8 @@ BRAT keeps the plugin updated automatically with each new release.
 
 > **Warning:** Manual installation bypasses BRAT's update mechanism. You will need to re-download files for each update.
 
-1. Download `main.js`, `manifest.json`, and `styles.css` from the [latest GitHub release](https://github.com/jzstoller/jzs-new-scanner/releases/latest)
-2. Copy them to your vault at `.obsidian/plugins/jzs-new-scanner/`
+1. Download `main.js`, `manifest.json`, and `styles.css` from the [latest GitHub release](https://github.com/jzstoller/jzs-simple-scanner/releases/latest)
+2. Copy them to your vault at `.obsidian/plugins/jzs-simple-scanner/`
 3. Reload Obsidian
 4. Enable the plugin in Settings → Community Plugins
 
@@ -114,7 +114,7 @@ Tap the ratio icon in the scanner modal to open a popover with two dropdowns: as
 
 ## Settings
 
-Access via Settings → Simple Scanner2.
+Access via Settings → Simple Scanner.
 
 | Setting | Default | Description |
 |---|---|---|
@@ -143,7 +143,7 @@ Access via Settings → Simple Scanner2.
 ## Project Structure
 
 ```
-jzs-new-scanner/
+jzs-simple-scanner/
 ├── main.ts                        # Plugin entry point, settings
 ├── Services/
 │   ├── AspectRatio.ts             # 16:9 aspect-ratio stretch helper (auto/forced orientation)
@@ -178,8 +178,8 @@ jzs-new-scanner/
 ### Setup
 
 ```bash
-git clone https://github.com/jzstoller/jzs-new-scanner.git
-cd jzs-new-scanner
+git clone https://github.com/jzstoller/jzs-simple-scanner.git
+cd jzs-simple-scanner
 npm install
 ```
 
@@ -210,8 +210,8 @@ bash bump.sh 1.4.1   # Bumps version, builds, commits, tags, pushes, creates Git
 
 ## Support
 
-- Bug reports: [GitHub Issues](https://github.com/jzstoller/jzs-new-scanner/issues)
-- Questions: [GitHub Discussions](https://github.com/jzstoller/jzs-new-scanner/discussions)
+- Bug reports: [GitHub Issues](https://github.com/jzstoller/jzs-simple-scanner/issues)
+- Questions: [GitHub Discussions](https://github.com/jzstoller/jzs-simple-scanner/discussions)
 - Obsidian plugin docs: [docs.obsidian.md](https://docs.obsidian.md/Plugins)
 
 ---

@@ -56,4 +56,4 @@ gh release create "$VERSION" \
   styles.css
 
 echo "✅ Version bump complete: $VERSION"
-echo "✅ GitHub release published: https://github.com/jzstoller/jzs-new-scanner/releases/tag/$VERSION"
+echo "✅ GitHub release published: https://github.com/jzstoller/jzs-simple-scanner/releases/tag/$VERSION"

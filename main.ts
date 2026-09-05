@@ -167,12 +167,12 @@ export default class ScannerPlugin extends Plugin {
 		};
 
 		// Ribbon and command palette both route through the same file-picker entry point.
-		this.addRibbonIcon("scan", "Simple Scanner2", openWithFilePicker);
+		this.addRibbonIcon("scan", "Simple Scanner", openWithFilePicker);
 
 		//await this.logger.info("Ribbon icon registered");
 
 		this.addCommand({
-			id: "open-scanner2",
+			id: "open-scanner",
 			name: "Open scanner",
 			icon: "scan",
 			callback: openWithFilePicker,
