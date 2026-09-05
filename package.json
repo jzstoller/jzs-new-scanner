@@ -1,6 +1,6 @@
 {
 	"name": "jzs-simple-scanner",
-	"version": "1.4.4",
+	"version": "1.4.5",
 	"description": "Scan documents with auto corner detection and perspective correction.",
 	"main": "main.js",
 	"scripts": {

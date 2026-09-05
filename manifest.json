@@ -1,7 +1,7 @@
 {
-	"id": "jzs-simple-scanner-2026",
+	"id": "simple-scanner",
 	"name": "Simple Scanner",
-	"version": "1.4.4",
+	"version": "1.4.5",
 	"minAppVersion": "1.13.0",
 	"description": "Scan documents with auto corner detection and perspective correction.",
 	"author": "Extski",
